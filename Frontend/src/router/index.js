@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import NProgress from 'nprogress' // Import NProgress
+import 'nprogress/nprogress.css' // Import CSS untuk styling NProgress
 
 // Import Views
 import Login from '../views/auth/Login.vue'
@@ -7,7 +9,7 @@ import Dashboard from '../views/features/Dashboard.vue'
 import UpdateUser from '../views/features/UpdateUser.vue'
 import Detail from '../views/Detail.vue'
 import Home from '../views/Home.vue'
-import CustomerPage from '../views/CustomerPage.vue'  // Halaman untuk customer
+import CustomerPage from '../views/CustomerPage.vue'
 import About from '../views/About.vue'
 import Forbidden from '../views/Forbidden.vue'
 import IndexKelolaPipa from '../views/KelolaPipa/IndexKelolaPipa.vue'
@@ -36,9 +38,9 @@ const routes = [
       }
     }
   },
-  
+
   { path: '/register', name: 'Register', component: Register },
-  
+
   // Halaman untuk admin
   {
     path: '/dashboard',
@@ -74,16 +76,14 @@ const routes = [
     meta: { requiresRole: 'admin' }
   },
   {
-  path: '/tambah-pipa',
-  name: 'tambah-pipa',
-  component: CreatePipa,
-  meta: {
-    requiresAuth: true,
-    role: 'admin'
-  }
-},
-
-
+    path: '/tambah-pipa',
+    name: 'tambah-pipa',
+    component: CreatePipa,
+    meta: {
+      requiresAuth: true,
+      role: 'admin'
+    }
+  },
 
   // Halaman untuk customer
   {
@@ -101,7 +101,7 @@ const routes = [
 
   // Halaman umum
   { path: '/about', name: 'About', component: About },
-  
+
   // Forbidden page
   { path: '/forbidden', name: 'Forbidden', component: Forbidden }
 ]
@@ -111,30 +111,60 @@ const router = createRouter({
   routes
 })
 
+// --- MODIFIKASI DIMULAI DI SINI ---
+
 // Navigation Guard
 router.beforeEach((to, from, next) => {
+  // Mulai progress bar saat navigasi dimulai
+  NProgress.start()
+
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
   const token = localStorage.getItem('jwt')
   const role = localStorage.getItem('role')
 
+  // Logika pengalihan untuk halaman login (rute '/')
+  if (to.path === '/') {
+    if (isLoggedIn) {
+      if (role === 'admin') {
+        NProgress.done() // Selesaikan progress bar jika langsung dialihkan
+        return next('/dashboard')
+      } else if (role === 'customer') {
+        NProgress.done() // Selesaikan progress bar jika langsung dialihkan
+        return next('/home')
+      }
+    } else {
+      return next() // Lanjutkan ke halaman login jika belum login
+    }
+  }
+
   // Jika belum login dan mencoba mengakses halaman yang membutuhkan login
-  const protectedRoutes = ['/dashboard', '/update', '/detail', '/customer-page', '/home']
+  const protectedRoutes = ['/dashboard', '/update', '/detail', '/customer-page', '/home', '/kelola-pipa', '/update-pipa', '/tambah-pipa']
   if (protectedRoutes.some(path => to.path.startsWith(path)) && (!isLoggedIn || !token)) {
+    NProgress.done() // Selesaikan progress bar jika dialihkan ke login
     return next('/') // redirect ke login
   }
 
   // Role-based access control
   if (to.meta.requiresRole) {
     if (to.meta.requiresRole === 'admin' && role !== 'admin') {
+      NProgress.done() // Selesaikan progress bar jika dialihkan ke Forbidden
       return next('/forbidden') // Redirect ke Forbidden page jika bukan admin
     }
 
     if (to.meta.requiresRole === 'customer' && role !== 'customer') {
+      NProgress.done() // Selesaikan progress bar jika dialihkan ke Forbidden
       return next('/forbidden') // Redirect ke Forbidden page jika bukan customer
     }
   }
 
   next() // Lanjutkan navigasi
 })
+
+router.afterEach(() => {
+  // Selesaikan progress bar setelah navigasi selesai (komponen dimuat)
+  NProgress.done()
+})
+
+// --- MODIFIKASI BERAKHIR DI SINI ---
 
 export default router

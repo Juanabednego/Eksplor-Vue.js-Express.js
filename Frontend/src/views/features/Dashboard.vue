@@ -45,7 +45,7 @@
                 @click="deleteUser(user._id)"
                 class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm"
               >
-                Delete
+                Non Aktifkan
               </button>
             </td>
           </tr>

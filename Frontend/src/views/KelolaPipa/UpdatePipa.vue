@@ -1,45 +1,39 @@
 <template>
   <div class="container mx-auto mt-8 max-w-2xl">
     <div class="bg-white shadow-lg rounded-lg p-6">
-      <h2 class="text-2xl font-bold mb-6 text-gray-800">Update</h2>
+      <h2 class="text-2xl font-bold mb-6 text-gray-800">Update Pipa</h2>
 
-      <!-- Loading Indicator -->
       <div v-if="loading" class="text-center mb-4">
-        <span class="loader">Loading...</span>
+        <span class="loader">Loading data pipa...</span>
       </div>
 
-      <!-- Error Message -->
       <div v-if="error" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
         <p>{{ error }}</p>
       </div>
 
-      <!-- Success Message -->
       <div v-if="success" class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
         <p>{{ success }}</p>
       </div>
 
-      <!-- Form Update Pipa -->
-      <form v-if="!loading && !error" @submit.prevent="updatePipe" class="space-y-4">
-        <!-- Nama Pipa -->
+      <form v-if="!loading && !error" @submit.prevent="promptForUpdate" class="space-y-4">
         <div>
           <label for="pipeName" class="block text-sm font-medium text-gray-700">Nama Pipa *</label>
-          <input 
-            v-model="pipeData.pipeName" 
-            type="text" 
-            id="pipeName" 
-            required 
+          <input
+            v-model="pipeData.pipeName"
+            type="text"
+            id="pipeName"
+            required
             class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Masukkan nama pipa"
           />
         </div>
 
-        <!-- Jenis Pipa -->
         <div>
           <label for="pipeType" class="block text-sm font-medium text-gray-700">Jenis Pipa *</label>
-          <select 
-            v-model="pipeData.pipeType" 
-            id="pipeType" 
-            required 
+          <select
+            v-model="pipeData.pipeType"
+            id="pipeType"
+            required
             class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Pilih jenis pipa</option>
@@ -51,31 +45,28 @@
           </select>
         </div>
 
-        <!-- Row untuk Diameter dan Panjang -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Diameter -->
           <div>
             <label for="diameter" class="block text-sm font-medium text-gray-700">Diameter (mm) *</label>
-            <input 
-              v-model.number="pipeData.diameter" 
-              type="number" 
-              id="diameter" 
-              required 
-              min="1" 
+            <input
+              v-model.number="pipeData.diameter"
+              type="number"
+              id="diameter"
+              required
+              min="1"
               max="1000"
               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Masukkan diameter"
             />
           </div>
 
-          <!-- Panjang -->
           <div>
             <label for="length" class="block text-sm font-medium text-gray-700">Panjang (m) *</label>
-            <input 
-              v-model.number="pipeData.length" 
-              type="number" 
-              id="length" 
-              required 
+            <input
+              v-model.number="pipeData.length"
+              type="number"
+              id="length"
+              required
               min="1"
               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Masukkan panjang"
@@ -83,27 +74,25 @@
           </div>
         </div>
 
-        <!-- Ketebalan Dinding -->
         <div>
           <label for="wallThickness" class="block text-sm font-medium text-gray-700">Ketebalan Dinding (mm) *</label>
-          <input 
-            v-model.number="pipeData.wallThickness" 
-            type="number" 
-            id="wallThickness" 
-            required 
+          <input
+            v-model.number="pipeData.wallThickness"
+            type="number"
+            id="wallThickness"
+            required
             min="1"
             class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Masukkan ketebalan dinding"
           />
         </div>
 
-        <!-- Kelas Pipa -->
         <div>
           <label for="pipeClass" class="block text-sm font-medium text-gray-700">Kelas Pipa *</label>
-          <select 
-            v-model="pipeData.pipeClass" 
-            id="pipeClass" 
-            required 
+          <select
+            v-model="pipeData.pipeClass"
+            id="pipeClass"
+            required
             class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Pilih kelas pipa</option>
@@ -113,56 +102,51 @@
           </select>
         </div>
 
-        <!-- Material -->
         <div>
           <label for="material" class="block text-sm font-medium text-gray-700">Material *</label>
-          <input 
-            v-model="pipeData.material" 
-            type="text" 
-            id="material" 
-            required 
+          <input
+            v-model="pipeData.material"
+            type="text"
+            id="material"
+            required
             class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Masukkan material pipa"
           />
         </div>
 
-        <!-- Warna -->
         <div>
           <label for="color" class="block text-sm font-medium text-gray-700">Warna *</label>
-          <input 
-            v-model="pipeData.color" 
-            type="text" 
-            id="color" 
-            required 
+          <input
+            v-model="pipeData.color"
+            type="text"
+            id="color"
+            required
             class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Masukkan warna pipa"
           />
         </div>
 
-        <!-- Row untuk Harga dan Stok -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Harga per Meter -->
           <div>
             <label for="pricePerMeter" class="block text-sm font-medium text-gray-700">Harga per Meter (Rp) *</label>
-            <input 
-              v-model.number="pipeData.pricePerMeter" 
-              type="number" 
-              id="pricePerMeter" 
-              required 
+            <input
+              v-model.number="pipeData.pricePerMeter"
+              type="number"
+              id="pricePerMeter"
+              required
               min="0"
               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Masukkan harga per meter"
             />
           </div>
 
-          <!-- Stok -->
           <div>
             <label for="stock" class="block text-sm font-medium text-gray-700">Stok *</label>
-            <input 
-              v-model.number="pipeData.stock" 
-              type="number" 
-              id="stock" 
-              required 
+            <input
+              v-model.number="pipeData.stock"
+              type="number"
+              id="stock"
+              required
               min="0"
               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Masukkan jumlah stok"
@@ -170,24 +154,22 @@
           </div>
         </div>
 
-        <!-- Tanggal Produksi -->
         <div>
           <label for="productionDate" class="block text-sm font-medium text-gray-700">Tanggal Produksi *</label>
-          <input 
-            v-model="pipeData.productionDate" 
-            type="date" 
-            id="productionDate" 
-            required 
+          <input
+            v-model="pipeData.productionDate"
+            type="date"
+            id="productionDate"
+            required
             class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        <!-- Status -->
         <div>
           <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-          <select 
-            v-model="pipeData.status" 
-            id="status" 
+          <select
+            v-model="pipeData.status"
+            id="status"
             class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="Aktif">Aktif</option>
@@ -196,18 +178,16 @@
           </select>
         </div>
 
-        <!-- Gambar Saat Ini -->
         <div v-if="pipeData.imageUrl" class="mb-4">
           <label class="block text-sm font-medium text-gray-700">Gambar Saat Ini</label>
           <img :src="pipeData.imageUrl" alt="Current pipe image" class="w-32 h-32 object-cover rounded-md border mt-2">
         </div>
 
-        <!-- Upload Gambar Baru -->
         <div>
           <label for="imageFile" class="block text-sm font-medium text-gray-700">Ganti Gambar Pipa</label>
-          <input 
-            type="file" 
-            id="imageFile" 
+          <input
+            type="file"
+            id="imageFile"
             @change="handleFileChange"
             accept="image/jpeg,image/png,image/jpg"
             class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -215,33 +195,30 @@
           <p class="text-sm text-gray-500 mt-1">Format: JPG, PNG. Maksimal 5MB. Kosongkan jika tidak ingin mengganti gambar.</p>
         </div>
 
-        <!-- Preview Gambar Baru -->
         <div v-if="imagePreview" class="mt-2">
           <label class="block text-sm font-medium text-gray-700">Preview Gambar Baru</label>
           <img :src="imagePreview" alt="Preview" class="w-32 h-32 object-cover rounded-md border mt-2">
         </div>
 
-        <!-- Deskripsi -->
         <div>
           <label for="description" class="block text-sm font-medium text-gray-700">Deskripsi</label>
-          <textarea 
-            v-model="pipeData.description" 
-            id="description" 
+          <textarea
+            v-model="pipeData.description"
+            id="description"
             rows="3"
             class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Masukkan deskripsi pipa (opsional)"
           ></textarea>
         </div>
 
-        <!-- Buttons -->
         <div class="flex justify-end space-x-4 pt-4">
           <router-link to="/kelola-pipa">
             <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
               Batal
             </button>
           </router-link>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             :disabled="updateLoading"
             class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
           >
@@ -250,6 +227,14 @@
         </div>
       </form>
     </div>
+
+    <ConfirmModal
+      :isVisible="showConfirmModalFlag"
+      title="Konfirmasi Perubahan Data"
+      message="Anda yakin ingin menyimpan perubahan pada data pipa ini?"
+      @confirmed="confirmUpdate"
+      @canceled="cancelUpdate"
+    />
   </div>
 </template>
 
@@ -257,18 +242,20 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
-import BE_PRE_URL from '../../url'
+import BE_PRE_URL from '../../url' // Pastikan path ini benar
+import ConfirmModal from '../../components/ConfirmModal.vue'; // Import komponen modal
 
 const route = useRoute()
 const router = useRouter()
 
 // Reactive states
-const loading = ref(true)
-const updateLoading = ref(false)
+const loading = ref(true) // Untuk loading data awal pipa
+const updateLoading = ref(false) // Untuk loading saat proses update
 const error = ref(null)
 const success = ref(null)
 const imagePreview = ref(null)
 const selectedFile = ref(null)
+const showConfirmModalFlag = ref(false) // State baru untuk mengontrol modal
 
 const pipeData = ref({
   pipeName: '',
@@ -289,27 +276,35 @@ const pipeData = ref({
 
 // Handle file change untuk preview gambar
 const handleFileChange = (event) => {
+  error.value = null; // Reset error saat file berubah
   const file = event.target.files[0]
   if (file) {
     // Validasi file
     if (!file.type.startsWith('image/')) {
-      error.value = 'File harus berupa gambar'
+      error.value = 'File harus berupa gambar.'
+      selectedFile.value = null;
+      imagePreview.value = null;
       return
     }
-    
+
     if (file.size > 5 * 1024 * 1024) { // 5MB
-      error.value = 'Ukuran file maksimal 5MB'
+      error.value = 'Ukuran file maksimal 5MB.'
+      selectedFile.value = null;
+      imagePreview.value = null;
       return
     }
 
     selectedFile.value = file
-    
+
     // Create preview
     const reader = new FileReader()
     reader.onload = (e) => {
       imagePreview.value = e.target.result
     }
     reader.readAsDataURL(file)
+  } else {
+    selectedFile.value = null;
+    imagePreview.value = null;
   }
 }
 
@@ -334,6 +329,7 @@ const uploadImage = async () => {
       config.headers.Authorization = `Bearer ${token}`
     }
 
+    // Ganti dengan endpoint upload gambar Anda yang sebenarnya
     const response = await axios.post(`http://${BE_PRE_URL}/lapangan/file-upload`, uploadFormData, config)
 
     return response.data.url
@@ -345,84 +341,112 @@ const uploadImage = async () => {
 
 // Fetch data pipa berdasarkan ID yang diterima dari URL
 const fetchPipe = async () => {
+  loading.value = true;
+  error.value = null;
   try {
     const response = await axios.get(`http://${BE_PRE_URL}/pipa/${route.params.id}`)
-    
+
     // Format tanggal untuk input date
     const pipeDataResponse = response.data
     if (pipeDataResponse.productionDate) {
-      pipeDataResponse.productionDate = new Date(pipeDataResponse.productionDate).toISOString().split('T')[0]
+      // Pastikan tanggal diformat ke 'YYYY-MM-DD'
+      const date = new Date(pipeDataResponse.productionDate);
+      pipeDataResponse.productionDate = date.toISOString().split('T')[0];
     }
-    
+
     pipeData.value = pipeDataResponse
   } catch (err) {
     console.error('Fetch error:', err)
-    error.value = 'Gagal memuat data pipa.'
+    error.value = 'Gagal memuat data pipa. Silakan coba lagi nanti.'
   } finally {
     loading.value = false
   }
 }
 
-// Kirimkan pembaruan pipa
-const updatePipe = async () => {
-  updateLoading.value = true
-  error.value = null
-  success.value = null
+// --- Metode Baru untuk Konfirmasi Update ---
+const promptForUpdate = () => {
+  // Hanya tampilkan modal jika form valid (opsional, tapi disarankan)
+  // Anda bisa menambahkan validasi form di sini sebelum menampilkan modal
+  // Misalnya, jika form HTML Anda sudah memiliki 'required',
+  // browser akan mencegah submit jika ada field kosong.
+  showConfirmModalFlag.value = true; // Tampilkan modal
+}
+
+const confirmUpdate = async () => {
+  showConfirmModalFlag.value = false; // Sembunyikan modal setelah konfirmasi
+  updateLoading.value = true; // Aktifkan loading untuk proses update
+  error.value = null;
+  success.value = null;
 
   try {
     // Buat copy dari data pipa
-    const updateData = { ...pipeData.value }
+    const updatePayload = { ...pipeData.value };
+
+    // Hapus imageUrl dari payload jika tidak ada file baru diupload dan imageUrl lama ingin dipertahankan
+    // atau jika backend Anda menangani pembaruan gambar secara terpisah
+    if (!selectedFile.value && !pipeData.value.imageUrl) {
+        delete updatePayload.imageUrl; // Hapus jika tidak ada gambar sama sekali
+    }
+
 
     // Upload gambar baru jika ada
     if (selectedFile.value) {
-      const imageUrl = await uploadImage()
-      updateData.imageUrl = imageUrl
+      const imageUrl = await uploadImage();
+      updatePayload.imageUrl = imageUrl;
     }
 
     // Tambahkan token untuk update pipa
-    const token = localStorage.getItem('jwt')
-    const config = {}
-    
-    if (token) {
-      config.headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+    const token = localStorage.getItem('jwt');
+    const config = {
+      headers: {
+        'Content-Type': 'application/json' // Pastikan ini application/json untuk payload JSON
       }
+    };
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     // Kirim data ke backend
-    const response = await axios.put(`http://${BE_PRE_URL}/pipa/${route.params.id}`, updateData, config)
-    
-    success.value = response.data.message || 'Pipa berhasil diperbarui'
-    
+    const response = await axios.put(`http://${BE_PRE_URL}/pipa/${route.params.id}`, updatePayload, config);
+
+    success.value = response.data.message || 'Pipa berhasil diperbarui!';
+
     // Reset preview dan selected file
-    imagePreview.value = null
-    selectedFile.value = null
-    
+    imagePreview.value = null;
+    selectedFile.value = null;
+
     // Reset file input
-    const fileInput = document.getElementById('imageFile')
+    const fileInput = document.getElementById('imageFile');
     if (fileInput) {
-      fileInput.value = ''
+      fileInput.value = '';
     }
-    
-    // Redirect ke halaman kelola pipa setelah 2 detik
+
+    // Redirect ke halaman kelola pipa setelah 1.5 detik
     setTimeout(() => {
-      router.push('/kelola-pipa')
-    }, 2000)
+      router.push('/kelola-pipa');
+    }, 1500);
 
   } catch (err) {
-    console.error('Update error:', err)
+    console.error('Update error:', err);
     if (err.response?.data?.message) {
-      error.value = err.response.data.message
+      error.value = err.response.data.message;
     } else if (err.message) {
-      error.value = err.message
+      error.value = err.message;
     } else {
-      error.value = 'Gagal memperbarui pipa. Silakan coba lagi.'
+      error.value = 'Gagal memperbarui pipa. Silakan coba lagi.';
     }
   } finally {
-    updateLoading.value = false
+    updateLoading.value = false; // Nonaktifkan loading setelah proses update selesai
   }
 }
+
+const cancelUpdate = () => {
+  showConfirmModalFlag.value = false; // Sembunyikan modal
+  console.log('Penyimpanan perubahan dibatalkan.');
+  // Tidak ada aksi lain yang perlu dilakukan, form tetap terbuka
+}
+// --- Akhir Metode Baru ---
 
 // Ambil data pipa saat halaman dimuat
 onMounted(() => {
@@ -431,6 +455,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Anda sudah memiliki gaya loader di sini, yang bagus */
 .loader {
   display: inline-block;
   width: 20px;
@@ -444,5 +469,17 @@ onMounted(() => {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Tambahan styling untuk memastikan elemen form berada dalam batasan yang benar */
+.container {
+  padding: 1rem; /* Tambahkan sedikit padding di container utama */
+}
+
+/* Sesuaikan gaya input dan select agar konsisten dengan Tailwind/desain Anda */
+/* Pastikan warna fokus cocok dengan skema warna Anda */
+input:focus, select:focus, textarea:focus {
+  border-color: #3b82f6; /* Contoh warna biru Tailwind */
+  box-shadow: 0 0 0 1px #3b82f6;
 }
 </style>

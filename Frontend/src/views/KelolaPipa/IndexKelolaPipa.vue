@@ -1,13 +1,11 @@
 <template>
   <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Header Section -->
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">Kelola Pipa</h1>
         <p class="text-gray-600">Manajemen data pipa untuk sistem distribusi</p>
       </div>
 
-      <!-- Loading Indicator -->
       <div v-if="loading" class="flex justify-center items-center py-12">
         <div class="flex flex-col items-center">
           <div class="loader mb-4"></div>
@@ -15,7 +13,6 @@
         </div>
       </div>
 
-      <!-- Error Message -->
       <div v-if="error" class="mb-6">
         <div class="bg-red-50 border border-red-200 rounded-lg p-4">
           <div class="flex items-center">
@@ -27,7 +24,6 @@
         </div>
       </div>
 
-      <!-- Action Bar -->
       <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center">
           <span class="text-sm text-gray-700">
@@ -35,7 +31,7 @@
           </span>
         </div>
         <div class="flex gap-3">
-          <button 
+          <button
             @click="fetchPipes"
             class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
@@ -55,7 +51,6 @@
         </div>
       </div>
 
-      <!-- Desktop Table View -->
       <div v-if="!loading && !error" class="hidden lg:block">
         <div class="bg-white shadow-sm rounded-lg overflow-hidden">
           <div class="overflow-x-auto">
@@ -84,12 +79,11 @@
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr v-for="pipe in pipes" :key="pipe._id" class="hover:bg-gray-50">
-                  <!-- Pipa Info -->
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
                       <div class="flex-shrink-0 h-16 w-16">
-                        <img v-if="pipe.imageUrl" 
-                             :src="pipe.imageUrl" 
+                        <img v-if="pipe.imageUrl"
+                             :src="pipe.imageUrl"
                              :alt="pipe.pipeName"
                              class="h-16 w-16 rounded-lg object-cover border border-gray-200">
                         <div v-else class="h-16 w-16 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -106,7 +100,6 @@
                     </div>
                   </td>
 
-                  <!-- Spesifikasi -->
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900">
                       <div class="mb-1">Ø {{ pipe.diameter }}mm</div>
@@ -115,7 +108,6 @@
                     </div>
                   </td>
 
-                  <!-- Harga & Stok -->
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900 font-medium">
                       Rp {{ pipe.pricePerMeter.toLocaleString('id-ID') }}
@@ -124,7 +116,6 @@
                     <div class="text-xs text-gray-400">Stok: {{ pipe.stock }}</div>
                   </td>
 
-                  <!-- Detail -->
                   <td class="px-6 py-4">
                     <div class="text-sm text-gray-900">
                       <div class="mb-1">Warna: {{ pipe.color }}</div>
@@ -135,14 +126,12 @@
                     </div>
                   </td>
 
-                  <!-- Status -->
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span :class="getStatusClass(pipe.status)" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
                       {{ pipe.status }}
                     </span>
                   </td>
 
-                  <!-- Actions -->
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div class="flex items-center gap-2">
                       <router-link :to="`/update-pipa/${pipe._id}`">
@@ -152,7 +141,7 @@
                           </svg>
                         </button>
                       </router-link>
-                      <button @click="deletePipe(pipe._id)" class="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50">
+                      <button @click="promptDelete(pipe._id, pipe.pipeName)" class="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                         </svg>
@@ -166,15 +155,13 @@
         </div>
       </div>
 
-      <!-- Mobile Card View -->
       <div v-if="!loading && !error" class="lg:hidden">
         <div class="space-y-4">
           <div v-for="pipe in pipes" :key="pipe._id" class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <!-- Header dengan gambar dan nama -->
             <div class="flex items-start gap-4 mb-4">
               <div class="flex-shrink-0">
-                <img v-if="pipe.imageUrl" 
-                     :src="pipe.imageUrl" 
+                <img v-if="pipe.imageUrl"
+                     :src="pipe.imageUrl"
                      :alt="pipe.pipeName"
                      class="h-16 w-16 rounded-lg object-cover border border-gray-200">
                 <div v-else class="h-16 w-16 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -192,7 +179,6 @@
               </div>
             </div>
 
-            <!-- Spesifikasi Grid -->
             <div class="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Diameter</dt>
@@ -220,25 +206,21 @@
               </div>
             </div>
 
-            <!-- Harga -->
             <div class="mb-4">
               <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Harga per Meter</dt>
               <dd class="text-lg font-bold text-gray-900">Rp {{ pipe.pricePerMeter.toLocaleString('id-ID') }}</dd>
             </div>
 
-            <!-- Deskripsi -->
             <div v-if="pipe.description" class="mb-4">
               <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</dt>
               <dd class="text-sm text-gray-700 mt-1">{{ pipe.description }}</dd>
             </div>
 
-            <!-- Tanggal Produksi -->
             <div class="mb-4">
               <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Produksi</dt>
               <dd class="text-sm text-gray-700">{{ formatDate(pipe.productionDate) }}</dd>
             </div>
 
-            <!-- Actions -->
             <div class="flex gap-2 pt-4 border-t border-gray-200">
               <router-link :to="`/update-pipa/${pipe._id}`" class="flex-1">
                 <button class="w-full inline-flex justify-center items-center px-4 py-2 border border-blue-300 shadow-sm text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -248,7 +230,7 @@
                   Edit
                 </button>
               </router-link>
-              <button @click="deletePipe(pipe._id)" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+              <button @click="promptDelete(pipe._id, pipe.pipeName)" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
@@ -259,7 +241,6 @@
         </div>
       </div>
 
-      <!-- Empty State -->
       <div v-if="!loading && !error && pipes.length === 0" class="text-center py-12">
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
@@ -278,23 +259,64 @@
         </div>
       </div>
     </div>
+
+    <div v-if="showDeleteModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+          <div class="sm:flex sm:items-start">
+            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+              <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+              <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                Hapus Pipa
+              </h3>
+              <div class="mt-2">
+                <p class="text-sm text-gray-500">
+                  Apakah Anda yakin ingin menghapus pipa **"{{ pipeToDeleteName }}"**? Tindakan ini tidak dapat dibatalkan.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <button type="button" @click="confirmDelete" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+              Hapus
+            </button>
+            <button type="button" @click="cancelDelete" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+              Batal
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import BE_PRE_URL from '../../url'
+import BE_PRE_URL from '../../url' // Pastikan path ini benar
 
 const loading = ref(true)
 const error = ref(null)
 const pipes = ref([])
 
+// State untuk modal konfirmasi delete
+const showDeleteModal = ref(false)
+const pipeToDeleteId = ref(null)
+const pipeToDeleteName = ref('')
+
 // Fetch Pipa Data
 const fetchPipes = async () => {
   loading.value = true
   error.value = null
-  
+
   try {
     const response = await axios.get(`http://${BE_PRE_URL}/pipa`)
     pipes.value = response.data.data || response.data || []
@@ -306,30 +328,42 @@ const fetchPipes = async () => {
   }
 }
 
-// Delete Pipa dengan konfirmasi yang lebih baik
-const deletePipe = async (id) => {
-  const pipe = pipes.value.find(p => p._id === id)
-  const pipeName = pipe ? pipe.pipeName : 'pipa ini'
-  
-  if (confirm(`Apakah Anda yakin ingin menghapus "${pipeName}"?\n\nTindakan ini tidak dapat dibatalkan.`)) {
-    try {
-      await axios.delete(`http://${BE_PRE_URL}/pipa/${id}`)
-      // Refresh list pipa
-      pipes.value = pipes.value.filter(pipe => pipe._id !== id)
-      
-      // Show success message (optional)
-      // You can implement a toast notification here
-    } catch (err) {
-      alert("Gagal menghapus pipa. Silakan coba lagi.")
-      console.error('Delete error:', err)
-    }
+// Menampilkan modal konfirmasi delete
+const promptDelete = (id, name) => {
+  pipeToDeleteId.value = id
+  pipeToDeleteName.value = name
+  showDeleteModal.value = true
+}
+
+// Logika penghapusan setelah konfirmasi
+const confirmDelete = async () => {
+  try {
+    await axios.delete(`http://${BE_PRE_URL}/pipa/${pipeToDeleteId.value}`)
+    // Refresh list pipa
+    pipes.value = pipes.value.filter(pipe => pipe._id !== pipeToDeleteId.value)
+    // Sembunyikan modal
+    showDeleteModal.value = false
+    pipeToDeleteId.value = null
+    pipeToDeleteName.value = ''
+    // Anda bisa menambahkan notifikasi sukses di sini jika diinginkan
+    // Contoh: alert('Pipa berhasil dihapus!');
+  } catch (err) {
+    alert("Gagal menghapus pipa. Silakan coba lagi.");
+    console.error('Delete error:', err);
   }
+}
+
+// Membatalkan penghapusan
+const cancelDelete = () => {
+  showDeleteModal.value = false
+  pipeToDeleteId.value = null
+  pipeToDeleteName.value = ''
 }
 
 // Format date
 const formatDate = (dateString) => {
   if (!dateString) return '-'
-  
+
   const date = new Date(dateString)
   return date.toLocaleDateString('id-ID', {
     year: 'numeric',
