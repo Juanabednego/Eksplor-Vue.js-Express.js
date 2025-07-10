@@ -111,7 +111,6 @@ const router = createRouter({
   routes
 })
 
-// --- MODIFIKASI DIMULAI DI SINI ---
 
 // Navigation Guard
 router.beforeEach((to, from, next) => {
@@ -165,6 +164,5 @@ router.afterEach(() => {
   NProgress.done()
 })
 
-// --- MODIFIKASI BERAKHIR DI SINI ---
 
 export default router

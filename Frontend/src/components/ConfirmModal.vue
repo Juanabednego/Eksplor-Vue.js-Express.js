@@ -120,4 +120,4 @@ export default {
 .btn-cancel:hover {
   background-color: #c82333;
 }
-</style>
+</style> 

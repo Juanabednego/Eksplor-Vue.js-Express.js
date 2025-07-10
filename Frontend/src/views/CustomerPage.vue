@@ -4,7 +4,7 @@
     <p class="text-lg text-gray-700">
       Selamat datang di halaman khusus customer. Di sini Anda dapat melihat fitur-fitur yang hanya dapat diakses oleh customer.
     </p>
-  </div>
+  </div> 
 </template>
 
 <script setup>

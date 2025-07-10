@@ -6,7 +6,7 @@ export const getAllPipa = asyncHandler(async (req, res) => {
     const pipes = await Pipe.find();
     res.status(200).json(pipes);
 });
-
+ 
 // Get Pipa by ID
 export const getPipaById = asyncHandler(async (req, res) => {
     const pipe = await Pipe.findById(req.params.id);
@@ -76,7 +76,6 @@ export const createPipa = asyncHandler(async (req, res) => {
         throw new Error("Gagal membuat pipa: " + error.message);
     }
 });
-
     
 // Update Pipa
 export const updatePipa = asyncHandler(async (req, res) => {
@@ -130,8 +129,8 @@ export const updatePipa = asyncHandler(async (req, res) => {
     // Update imageUrl jika ada
     if (imageUrl !== undefined) {
         pipe.imageUrl = imageUrl;
-    }
-
+    } 
+ 
     try {
         const updatedPipe = await pipe.save();
         res.status(200).json({
@@ -142,7 +141,7 @@ export const updatePipa = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error("Gagal memperbarui pipa: " + error.message);
     }
-});
+}); 
 
 // Delete Pipa
 export const deletePipa = asyncHandler(async (req, res) => {
@@ -155,4 +154,3 @@ export const deletePipa = asyncHandler(async (req, res) => {
     await Pipe.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "Pipa berhasil dihapus" });
 });
-

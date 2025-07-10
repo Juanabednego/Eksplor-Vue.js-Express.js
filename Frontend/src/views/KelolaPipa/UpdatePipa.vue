@@ -425,7 +425,7 @@ const confirmUpdate = async () => {
     // Redirect ke halaman kelola pipa setelah 1.5 detik
     setTimeout(() => {
       router.push('/kelola-pipa');
-    }, 1500);
+    }, 1000);
 
   } catch (err) {
     console.error('Update error:', err);

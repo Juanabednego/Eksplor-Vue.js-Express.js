@@ -8,14 +8,12 @@ import pipaRouter from './routes/pipaRouter.js'
 import cors from 'cors'
 
 
-
 import dotenv from "dotenv"
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js"
 import cookieParser from "cookie-parser"
 import helmet from "helmet"
 import ExpressMongoSanitize from "express-mongo-sanitize"
 import { v2 as cloudinary } from 'cloudinary';
-
 
 
 
@@ -29,7 +27,6 @@ cloudinary.config({
       api_key: 193388313656343, 
       api_secret: "qYF6EPlE381NVDneflc7AxHOtmk" // Click 'View API Keys' above to copy your API secret
 });
-
 
 //Middleware
 app.use(helmet())

@@ -344,7 +344,7 @@ const createPipa = async () => {
       }
     }
 
-    // Kirim data ke backend
+    // Kirim data ke backend 
     const response = await axios.post(`http://${BE_PRE_URL}/pipa`, formData, config)
     
     success.value = response.data.message || 'Pipa berhasil dibuat'
@@ -352,7 +352,7 @@ const createPipa = async () => {
     // Reset form
     Object.keys(formData).forEach(key => {
       formData[key] = ''
-    })
+     })
     imagePreview.value = null
     selectedFile.value = null
     
