@@ -40,7 +40,7 @@ app.use(express.static('./public'))
 app.use(cors())
 
 app.use(cors({
-  origin: 'http://localhost:5173', // sesuaikan dengan port frontend
+  origin: 'http://localhost:9000', // sesuaikan dengan port frontend
   credentials: true
 }))
 
