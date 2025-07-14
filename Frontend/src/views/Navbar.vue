@@ -83,11 +83,10 @@ function logout() {
   localStorage.removeItem('isLoggedIn')
   localStorage.removeItem('jwt')
   localStorage.removeItem('role')
-
   localStorage.setItem('logout', true) // Simpan role
 
   
-  // Refresh paksa untuk memperbarui tampilan setelah logout
+  // Refresh paksa untuk memperbarui tampilan setelah logout  
   window.location.reload()
 }
 

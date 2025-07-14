@@ -15,6 +15,9 @@ import Forbidden from '../views/Forbidden.vue'
 import IndexKelolaPipa from '../views/KelolaPipa/IndexKelolaPipa.vue'
 import UpdatePipa from '../views/KelolaPipa/UpdatePipa.vue'
 import CreatePipa from '../views/KelolaPipa/CreatePipa.vue'
+import CartView from '../views/CartView.vue';
+import CheckoutView from '../views/CheckoutView.vue';
+import OrderConfirmationView from '../views/OrderConfirmationView.vue';
 
 const routes = [
   // Halaman Login yang akan dialihkan jika sudah login
@@ -98,6 +101,24 @@ const routes = [
     component: Home,
     meta: { requiresRole: 'customer' }
   },
+   {
+      path: '/cart',
+      name: 'cart',
+      component: CartView,
+    },
+    {
+      path: '/checkout',
+      name: 'checkout',
+      component: CheckoutView,
+      meta: { requiresAuth: true }, // Membutuhkan login
+    },
+    {
+      path: '/order-confirmation/:orderId', // Parameter dinamis untuk ID pesanan
+      name: 'orderConfirmation',
+      component: OrderConfirmationView,
+      props: true, // Untuk melewatkan orderId sebagai prop ke komponen
+      meta: { requiresAuth: true }, // Membutuhkan login
+    },
 
   // Halaman umum
   { path: '/about', name: 'About', component: About },

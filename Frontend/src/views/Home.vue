@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-    <!-- Hero Section -->
     <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-16">
       <div class="container mx-auto px-4">
         <div class="text-center">
@@ -25,9 +24,7 @@
       </div>
     </div>
 
-    <!-- Main Content -->
     <div class="container mx-auto px-4 py-12">
-      <!-- Loading State -->
       <div v-if="loading" class="flex justify-center items-center py-20">
         <div class="text-center">
           <div class="loader mx-auto mb-4"></div>
@@ -35,7 +32,6 @@
         </div>
       </div>
 
-      <!-- Error State -->
       <div v-else-if="error" class="max-w-md mx-auto text-center py-20">
         <div class="bg-red-50 border border-red-200 rounded-lg p-8">
           <div class="text-red-500 mb-4">
@@ -54,7 +50,6 @@
         </div>
       </div>
 
-      <!-- Empty State -->
       <div v-else-if="pipes.length === 0" class="text-center py-20">
         <div class="bg-gray-50 border border-gray-200 rounded-lg p-8 max-w-md mx-auto">
           <div class="text-gray-400 mb-4">
@@ -67,9 +62,7 @@
         </div>
       </div>
 
-      <!-- Success State - Products Grid -->
       <div v-else>
-        <!-- Stats Summary -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <div class="bg-white rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform">
             <div class="text-3xl font-bold text-blue-600 mb-2">{{ pipes.length }}</div>
@@ -89,7 +82,6 @@
           </div>
         </div>
 
-        <!-- Filter Section -->
         <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
           <div class="flex flex-wrap gap-4 items-center">
             <div class="flex-1 min-w-64">
@@ -123,14 +115,12 @@
           </div>
         </div>
 
-        <!-- Products Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <div 
             v-for="pipe in filteredPipes" 
             :key="pipe._id"
             class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group"
           >
-            <!-- Product Image -->
             <div class="relative h-48 bg-gray-200 overflow-hidden">
               <img 
                 v-if="pipe.imageUrl" 
@@ -138,6 +128,7 @@
                 :alt="pipe.pipeName"
                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 @error="handleImageError"
+                loading="lazy" 
               >
               <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
                 <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,7 +136,6 @@
                 </svg>
               </div>
               
-              <!-- Status Badge -->
               <div class="absolute top-3 right-3">
                 <span 
                   :class="getStatusBadgeClass(pipe.status)"
@@ -155,7 +145,6 @@
                 </span>
               </div>
 
-              <!-- Type Badge -->
               <div class="absolute top-3 left-3">
                 <span 
                   :class="getTypeBadgeClass(pipe.pipeType)"
@@ -166,7 +155,6 @@
               </div>
             </div>
 
-            <!-- Product Info -->
             <div class="p-6">
               <h3 class="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">
                 {{ pipe.pipeName }}
@@ -199,7 +187,6 @@
                 </div>
               </div>
 
-              <!-- Price -->
               <div class="flex items-center justify-between mb-4">
                 <span class="text-2xl font-bold text-green-600">
                   {{ formatPrice(pipe.pricePerMeter) }}
@@ -207,33 +194,25 @@
                 <span class="text-gray-500 text-sm">/meter</span>
               </div>
 
-              <!-- Description -->
               <p v-if="pipe.description" class="text-gray-600 text-sm mb-4 line-clamp-2">
                 {{ pipe.description }}
               </p>
 
-<!-- Action Button -->
-<a 
-  v-if="pipe.status === 'Aktif' && pipe.stock > 0" 
-  :href="'https://wa.me/6283114596027?text=Halo,%20Saya%20tertarik%20dengan%20produk%20' + pipe.pipeName" 
-  target="_blank"
-  class="w-full py-2 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors duration-200 text-center block"
->
-  Hubungi Kami
-</a>
-<!-- Jika tidak tersedia -->
-<button 
-  v-else
-  class="w-full py-2 px-4 rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed font-medium transition-colors duration-200"
->
-  Tidak Tersedia
-</button>
-
+              <button 
+                @click="handleBuyClick(pipe)"
+                :disabled="pipe.status !== 'Aktif' || pipe.stock === 0"
+                :class="{
+                  'bg-blue-600 hover:bg-blue-700 text-white': pipe.status === 'Aktif' && pipe.stock > 0,
+                  'bg-gray-300 text-gray-500 cursor-not-allowed': pipe.status !== 'Aktif' || pipe.stock === 0
+                }"
+                class="w-full py-2 px-4 rounded-lg font-medium transition-colors duration-200"
+              >
+                {{ pipe.status !== 'Aktif' || pipe.stock === 0 ? 'Tidak Tersedia' : 'Beli Sekarang' }}
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- No Results -->
         <div v-if="filteredPipes.length === 0 && pipes.length > 0" class="text-center py-12">
           <div class="text-gray-400 mb-4">
             <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,7 +230,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
-import BE_PRE_URL from '../url'
+import BE_PRE_URL from '../url' // Pastikan file ini ada dan berisi URL dasar backend Anda
 
 // Reactive states
 const loading = ref(true)
@@ -287,7 +266,7 @@ const filteredPipes = computed(() => {
       pipe.pipeName.toLowerCase().includes(query) ||
       pipe.pipeType.toLowerCase().includes(query) ||
       pipe.material.toLowerCase().includes(query) ||
-      pipe.description.toLowerCase().includes(query)
+      (pipe.description && pipe.description.toLowerCase().includes(query)) 
     )
   }
 
@@ -314,7 +293,7 @@ const fetchPipes = async () => {
     pipes.value = response.data
   } catch (err) {
     console.error('Fetch pipes error:', err)
-    error.value = err.response?.data?.message || 'Gagal memuat data pipa. Silakan coba lagi.'
+    error.value = err.response?.data?.message || `Gagal memuat data pipa. Pastikan backend berjalan dan dapat diakses di http://${BE_PRE_URL}/pipa. Cek konsol browser untuk detail lebih lanjut.`
   } finally {
     loading.value = false
   }
@@ -349,10 +328,49 @@ const getTypeBadgeClass = (type) => {
 }
 
 const handleImageError = (event) => {
-  event.target.style.display = 'none'
+  event.target.style.display = 'none';
+  if (event.target.nextElementSibling) {
+    event.target.nextElementSibling.style.display = 'flex';
+  }
 }
 
-// Lifecycle
+// Fungsi handleBuyClick yang akan dieksekusi saat tombol "Beli Sekarang" diklik
+const handleBuyClick = (pipe) => {
+  if (pipe.status === 'Aktif' && pipe.stock > 0) {
+    // --- TEMPATKAN LOGIKA "BELI" ANDA DI SINI ---
+    // Contoh: Menampilkan alert (seperti sebelumnya)
+    alert(`Anda telah menekan tombol beli untuk: ${pipe.pipeName}. Produk ini siap untuk diproses!`);
+
+    // Contoh: Integrasi dengan Keranjang Belanja (menggunakan Pinia, misalnya)
+    // 1. Pastikan Anda sudah mengimpor useCartStore di bagian atas script:
+    //    import { useCartStore } from '../stores/cart'
+    // 2. Inisialisasi store:
+    //    const cartStore = useCartStore();
+    // 3. Panggil aksi untuk menambahkan produk ke keranjang:
+    //    cartStore.addToCart(pipe);
+    //    alert(`${pipe.pipeName} telah ditambahkan ke keranjang Anda!`);
+
+    // Contoh: Navigasi ke Halaman Detail Produk atau Checkout
+    // 1. Pastikan Anda sudah mengimpor useRouter dari vue-router di bagian atas script:
+    //    import { useRouter } from 'vue-router';
+    // 2. Inisialisasi router:
+    //    const router = useRouter();
+    // 3. Lakukan navigasi:
+    //    router.push({ name: 'ProductDetail', params: { id: pipe._id } });
+    //    router.push({ path: '/checkout' });
+
+    // Anda bisa menggabungkan beberapa logika di sini sesuai kebutuhan aplikasi Anda.
+    // Misalnya, tambahkan ke keranjang, lalu munculkan toast/notifikasi.
+
+  } else {
+    // Pesan ini hanya sebagai fallback, karena tombol seharusnya sudah di-disable
+    // jika produk tidak aktif atau stok habis.
+    alert(`Produk "${pipe.pipeName}" tidak tersedia untuk dibeli.`);
+  }
+};
+
+
+// Lifecycle hook
 onMounted(() => {
   fetchPipes()
 })

@@ -36,11 +36,8 @@ app.use(express.urlencoded({extended : true}))  // memasukkan inputan di urlenco
 app.use(cookieParser())
 app.use(express.static('./public'))
 
-
-app.use(cors())
-
 app.use(cors({
-  origin: 'http://localhost:9000', // sesuaikan dengan port frontend
+  origin: 'http://localhost:5173', // sesuaikan dengan port frontend
   credentials: true
 }))
 
@@ -51,6 +48,7 @@ dotenv.config()
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/lapangan', lapanganRouter)
 app.use('/api/v1/pipa', pipaRouter)
+app.use('/api/orders', orderRoutes); 
 
 
 
