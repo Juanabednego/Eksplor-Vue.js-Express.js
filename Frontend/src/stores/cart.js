@@ -6,12 +6,14 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
-    items: [], // Array of { product: { _id, name, price, image, ... }, quantity: number }
+    items: [], // Array of { product: { _id, name, price, image, stock, ... }, quantity: number }
     // loading dan error bisa ditambahkan jika ingin sinkronisasi real-time dengan backend
+    // shippingCost: 0, // Anda bisa menambahkan ini jika ingin menyimpan ongkir di store
   }),
   getters: {
     cartTotalItems: (state) => state.items.reduce((total, item) => total + item.quantity, 0),
     cartSubtotal: (state) => state.items.reduce((total, item) => total + (item.product.price * item.quantity), 0),
+    // totalAmount: (state) => state.items.reduce((total, item) => total + (item.product.price * item.quantity), 0) + state.shippingCost,
   },
   actions: {
     loadCartFromLocalStorage() {
@@ -78,6 +80,13 @@ export const useCartStore = defineStore('cart', {
     clearCart() {
       this.items = [];
       this.saveCartToLocalStorage();
-    }
+    },
+
+    // Contoh: Jika Anda ingin memiliki logika penghitungan ongkir dinamis di store
+    // calculateShippingCost() {
+    //     // Logika kompleks untuk menghitung ongkir bisa di sini
+    //     // Misalnya berdasarkan total berat, lokasi, dll.
+    //     this.shippingCost = 10000; // Contoh statis
+    // },
   },
 });

@@ -1,24 +1,22 @@
-// backend/routes/orderRoutes.js
-const express = require('express');
+import express from 'express'; // Ganti require('express')
 const router = express.Router();
-const {
+import {
   addOrderItems,
   getOrderById,
   updateOrderToPaid,
   getMyOrders,
-} = require('../controllers/orderController');
-const { protect } = require('../middlewares/authMiddleware'); // Pastikan ini sudah ada
+} from '../controllers/orderController.js'; // Pastikan .js di akhir jika file controller juga ES Modules
+import { protectedMiddleware } from '../middleware/authMiddleware.js';  // Pastikan ini sudah ada
 
 // POST untuk membuat pesanan baru
-router.route('/').post(protect, addOrderItems);
-
+router.route('/').post(protectedMiddleware, addOrderItems);
 // GET untuk mendapatkan semua pesanan user yang login
-router.route('/myorders').get(protect, getMyOrders);
+router.route('/myorders').get(protectedMiddleware, getMyOrders);
 
 // GET untuk mendapatkan detail pesanan berdasarkan ID
 // PUT untuk memperbarui status pembayaran pesanan
 router.route('/:id')
-  .get(protect, getOrderById)
-  .put(protect, updateOrderToPaid); // Biasanya hanya admin atau webhook PG yang mengubah ini
+  .get(protectedMiddleware, getOrderById)
+  .put(protectedMiddleware, updateOrderToPaid); // Biasanya hanya admin atau webhook PG yang mengubah ini
 
-module.exports = router;
+export default router;  

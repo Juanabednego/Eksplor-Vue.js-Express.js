@@ -1,12 +1,13 @@
 // backend/controllers/orderController.js
-const Order = require('../models/Order');
-const Product = require('../models/Product'); // Untuk validasi stok dan pengurangan
-const asyncHandler = require('express-async-handler'); // Untuk error handling async/await
+import Order from '../models/Order.js'; // Pastikan path dan ekstensi .js benar untuk model Order Anda
+import Pipe from '../models/pipaModel.js'; // <--- PERBAIKAN AKHIR: Import sebagai 'Pipe' sesuai default export
+
+import asyncHandler from 'express-async-handler'; // Menggunakan import untuk express-async-handler
 
 // @desc    Create new order
 // @route   POST /api/orders
 // @access  Private (hanya user terautentikasi)
-const addOrderItems = asyncHandler(async (req, res) => {
+export const addOrderItems = asyncHandler(async (req, res) => {
   const {
     orderItems,
     shippingAddress,
@@ -21,29 +22,30 @@ const addOrderItems = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('Tidak ada item dalam pesanan');
   } else {
-    // --- Validasi Stok Produk ---
-    // Iterasi setiap item di order dan cek stok di database
+    
     for (const item of orderItems) {
-      const product = await Product.findById(item.product); // item.product adalah _id dari produk
-      if (!product) {
+     
+      const pipeDoc = await Pipe.findById(item.product); 
+      if (!pipeDoc) {
         res.status(404);
-        throw new Error(`Produk dengan ID ${item.product} tidak ditemukan.`);
+        throw new Error(`Produk pipa dengan ID ${item.product} tidak ditemukan.`);
       }
-      if (product.stock < item.quantity) {
+     
+      if (pipeDoc.stock < item.quantity) { 
         res.status(400);
-        throw new Error(`Stok untuk produk "${product.name}" tidak mencukupi. Tersedia: ${product.stock}, diminta: ${item.quantity}`);
+        throw new Error(`Stok untuk produk "${pipeDoc.pipeName}" tidak mencukupi. Tersedia: ${pipeDoc.stock}, diminta: ${item.quantity}`); // <--- MENGGUNAKAN pipeDoc.pipeName
       }
     }
 
     const order = new Order({
-      user: req.user._id, // Ambil ID user dari middleware 'protect'
+      user: req.user._id,
       orderItems: orderItems.map(item => ({
-        // Penting: Hanya kirim data yang relevan dan _id produk
-        product: item.product,
-        name: item.name,
+     
+        product: item.product, // _id produk dari item.product (ini adalah ID pipa)
+        name: item.name, // Nama produk dari item cart (ini adalah pipeName)
         quantity: item.quantity,
-        price: item.price,
-        image: item.image,
+        price: item.price, // Harga per unit produk
+        image: item.image, // URL gambar produk
         _id: undefined // Hapus _id yang mungkin dikirim dari frontend untuk item, agar MongoDB generate baru
       })),
       shippingAddress,
@@ -58,10 +60,11 @@ const addOrderItems = asyncHandler(async (req, res) => {
 
     // --- Kurangi Stok Produk Setelah Pesanan Dibuat ---
     for (const item of orderItems) {
-      const product = await Product.findById(item.product);
-      if (product) { // Periksa lagi untuk keamanan, meskipun sudah divalidasi di awal
-        product.stock -= item.quantity;
-        await product.save();
+      // Menggunakan Pipe.findById
+      const pipeDoc = await Pipe.findById(item.product); // <--- MENGGUNAKAN Pipe.findById
+      if (pipeDoc) {
+        pipeDoc.stock -= item.quantity; // <--- MENGGUNAKAN pipeDoc.stock
+        await pipeDoc.save();
       }
     }
 
@@ -72,13 +75,14 @@ const addOrderItems = asyncHandler(async (req, res) => {
 // @desc    Get order by ID
 // @route   GET /api/orders/:id
 // @access  Private
-const getOrderById = asyncHandler(async (req, res) => {
+export const getOrderById = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id)
     .populate('user', 'name email') // Mengambil nama dan email user yang membuat order
-    .populate('orderItems.product', 'name image'); // Mengambil nama dan gambar produk dari order items
+    .populate('orderItems.product', 'pipeName imageUrl'); // <--- PASTIKAN INI SESUAI DENGAN SCHEMA pipaModel: pipeName, imageUrl
 
   if (order) {
     // Verifikasi bahwa user yang meminta adalah pemilik order atau admin
+    // Asumsi req.user.isAdmin adalah properti boolean yang menandakan role admin
     if (order.user._id.toString() !== req.user._id.toString() && !req.user.isAdmin) {
       res.status(401);
       throw new Error('Tidak diotorisasi: Anda tidak memiliki akses ke pesanan ini');
@@ -93,7 +97,7 @@ const getOrderById = asyncHandler(async (req, res) => {
 // @desc    Update order to paid (Setelah konfirmasi pembayaran dari payment gateway/manual)
 // @route   PUT /api/orders/:id/pay
 // @access  Private
-const updateOrderToPaid = asyncHandler(async (req, res) => {
+export const updateOrderToPaid = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
 
   if (order) {
@@ -118,14 +122,9 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
 // @desc    Get logged in user orders
 // @route   GET /api/orders/myorders
 // @access  Private
-const getMyOrders = asyncHandler(async (req, res) => {
+export const getMyOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 }); // Urutkan dari terbaru
   res.json(orders);
 });
 
-module.exports = {
-  addOrderItems,
-  getOrderById,
-  updateOrderToPaid,
-  getMyOrders,
-};
+// Tidak perlu module.exports lagi karena sudah menggunakan export const

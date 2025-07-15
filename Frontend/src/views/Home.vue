@@ -232,6 +232,10 @@ import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import BE_PRE_URL from '../url' // Pastikan file ini ada dan berisi URL dasar backend Anda
 
+// *** IMPORT TAMBAHAN YANG DIPERLUKAN ***
+import { useRouter } from 'vue-router' // Import useRouter untuk navigasi
+import { useCartStore } from '../stores/cart' // Import useCartStore dari Pinia
+
 // Reactive states
 const loading = ref(true)
 const error = ref(null)
@@ -239,6 +243,10 @@ const pipes = ref([])
 const searchQuery = ref('')
 const filterType = ref('')
 const filterStatus = ref('')
+
+// *** INISIALISASI ROUTER DAN STORE ***
+const router = useRouter() // Inisialisasi router
+const cartStore = useCartStore() // Inisialisasi cart store
 
 // Computed properties
 const availablePipes = computed(() => {
@@ -262,11 +270,11 @@ const filteredPipes = computed(() => {
   // Filter by search query
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(pipe => 
+    filtered = filtered.filter(pipe =>
       pipe.pipeName.toLowerCase().includes(query) ||
       pipe.pipeType.toLowerCase().includes(query) ||
       pipe.material.toLowerCase().includes(query) ||
-      (pipe.description && pipe.description.toLowerCase().includes(query)) 
+      (pipe.description && pipe.description.toLowerCase().includes(query))
     )
   }
 
@@ -287,7 +295,7 @@ const filteredPipes = computed(() => {
 const fetchPipes = async () => {
   loading.value = true
   error.value = null
-  
+
   try {
     const response = await axios.get(`http://${BE_PRE_URL}/pipa`)
     pipes.value = response.data
@@ -334,37 +342,37 @@ const handleImageError = (event) => {
   }
 }
 
-// Fungsi handleBuyClick yang akan dieksekusi saat tombol "Beli Sekarang" diklik
+// Fungsi handleBuyClick yang diperbaiki
 const handleBuyClick = (pipe) => {
   if (pipe.status === 'Aktif' && pipe.stock > 0) {
-    // --- TEMPATKAN LOGIKA "BELI" ANDA DI SINI ---
-    // Contoh: Menampilkan alert (seperti sebelumnya)
-    alert(`Anda telah menekan tombol beli untuk: ${pipe.pipeName}. Produk ini siap untuk diproses!`);
+    // Siapkan objek produk sesuai format yang diharapkan oleh cart store
+    // Berdasarkan cart.js Anda, ia mengharapkan { product: { _id, name, price, image, ... }, quantity }
+    const productForCart = {
+      _id: pipe._id,
+      name: pipe.pipeName,
+      price: pipe.pricePerMeter, // Menggunakan pricePerMeter sebagai 'price' di item keranjang
+      imageUrl: pipe.imageUrl,
+      stock: pipe.stock,
+      // Tambahkan properti lain dari 'pipe' yang mungkin berguna di keranjang
+      diameter: pipe.diameter,
+      length: pipe.length,
+      pipeClass: pipe.pipeClass,
+      material: pipe.material,
+      color: pipe.color,
+    };
 
-    // Contoh: Integrasi dengan Keranjang Belanja (menggunakan Pinia, misalnya)
-    // 1. Pastikan Anda sudah mengimpor useCartStore di bagian atas script:
-    //    import { useCartStore } from '../stores/cart'
-    // 2. Inisialisasi store:
-    //    const cartStore = useCartStore();
-    // 3. Panggil aksi untuk menambahkan produk ke keranjang:
-    //    cartStore.addToCart(pipe);
-    //    alert(`${pipe.pipeName} telah ditambahkan ke keranjang Anda!`);
+    // Tambahkan produk ke keranjang
+    cartStore.addToCart(productForCart, 1); // Tambahkan 1 unit
 
-    // Contoh: Navigasi ke Halaman Detail Produk atau Checkout
-    // 1. Pastikan Anda sudah mengimpor useRouter dari vue-router di bagian atas script:
-    //    import { useRouter } from 'vue-router';
-    // 2. Inisialisasi router:
-    //    const router = useRouter();
-    // 3. Lakukan navigasi:
-    //    router.push({ name: 'ProductDetail', params: { id: pipe._id } });
-    //    router.push({ path: '/checkout' });
+    // Opsional: Beri notifikasi kecil (misal, toast/snackbar) alih-alih alert
+    // alert(`"${pipe.pipeName}" telah ditambahkan ke keranjang Anda!`);
+    console.log(`"${pipe.pipeName}" telah ditambahkan ke keranjang.`);
 
-    // Anda bisa menggabungkan beberapa logika di sini sesuai kebutuhan aplikasi Anda.
-    // Misalnya, tambahkan ke keranjang, lalu munculkan toast/notifikasi.
-
+    // Arahkan ke halaman keranjang setelah ditambahkan
+    router.push({ path: '/cart' }); // Menggunakan path '/cart' sesuai router Anda
+    // Atau bisa juga: router.push({ name: 'cart' });
   } else {
     // Pesan ini hanya sebagai fallback, karena tombol seharusnya sudah di-disable
-    // jika produk tidak aktif atau stok habis.
     alert(`Produk "${pipe.pipeName}" tidak tersedia untuk dibeli.`);
   }
 };
@@ -373,6 +381,7 @@ const handleBuyClick = (pipe) => {
 // Lifecycle hook
 onMounted(() => {
   fetchPipes()
+  cartStore.loadCartFromLocalStorage() // Memuat item keranjang saat komponen dimount
 })
 </script>
 

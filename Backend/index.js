@@ -4,6 +4,7 @@ import express from "express"
 import authRouter from './routes/authRouter.js'
 import lapanganRouter from './routes/lapanganRouter.js'
 import pipaRouter from './routes/pipaRouter.js'
+import orderRoutes from './routes/orderRoutes.js'
 
 import cors from 'cors'
 

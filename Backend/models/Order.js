@@ -1,15 +1,15 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const orderItemSchema = mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: 'Product', // Referensi ke model Product
+    ref: 'Pipe', // Mengacu ke model Pipe Anda
   },
-  name: { type: String, required: true },
+  name: { type: String, required: true }, // Biasanya pipeName dari pipa
   quantity: { type: Number, required: true },
   price: { type: Number, required: true },
-  image: { type: String, required: true }, // URL gambar produk dari saat item ditambahkan
+  image: { type: String, required: true },
 });
 
 const orderSchema = mongoose.Schema(
@@ -17,7 +17,7 @@ const orderSchema = mongoose.Schema(
     user: { // Pengguna yang membuat pesanan
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: 'User', // Referensi ke model User
+      ref: 'User', // Referensi ke model User (asumsi nama modelnya 'User')
     },
     orderItems: [orderItemSchema], // Array dari item-item yang dipesan
     shippingAddress: { // Detail alamat pengiriman
@@ -56,21 +56,38 @@ const orderSchema = mongoose.Schema(
       required: true,
       default: 0.0,
     },
-    isPaid: { // Status pembayaran
+    isPaid: { // Status pembayaran (sudah diverifikasi admin)
       type: Boolean,
       required: true,
       default: false,
     },
-    paidAt: { // Tanggal pembayaran
+    paidAt: { // Tanggal pembayaran diverifikasi
       type: Date,
     },
-    isDelivered: { // Status pengiriman
+    isDelivered: { // Status pengiriman (sudah dikirim)
       type: Boolean,
       required: true,
       default: false,
     },
     deliveredAt: { // Tanggal pengiriman
       type: Date,
+    },
+    // --- FIELD BARU YANG DITAMBAHKAN/DIUBAH ---
+    orderStatus: { // Status alur pesanan (lebih rinci dari isPaid/isDelivered)
+      type: String,
+      required: true,
+      default: 'Pending Payment', // Status awal saat order dibuat
+      enum: ['Pending Payment', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Refunded'],
+    },
+    proofOfTransferImage: { // URL ke gambar bukti transfer
+      type: String,
+      required: function() {
+        // Field ini hanya wajib jika paymentMethod adalah 'Transfer Bank'
+        return this.paymentMethod === 'Transfer Bank';
+      },
+    },
+    adminNotes: { // Catatan internal untuk admin
+      type: String,
     },
   },
   {
@@ -79,4 +96,5 @@ const orderSchema = mongoose.Schema(
 );
 
 const Order = mongoose.model('Order', orderSchema);
-module.exports = Order;
+
+export default Order;

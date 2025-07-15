@@ -1,8 +1,10 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import NProgress from 'nprogress' // Import NProgress
-import 'nprogress/nprogress.css' // Import CSS untuk styling NProgress
+// frontend/src/router/index.js
 
-// Import Views
+import { createRouter, createWebHistory } from 'vue-router'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+
+// Import Views (Pastikan semua path ini benar)
 import Login from '../views/auth/Login.vue'
 import Register from '../views/auth/Register.vue'
 import Dashboard from '../views/features/Dashboard.vue'
@@ -18,113 +20,115 @@ import CreatePipa from '../views/KelolaPipa/CreatePipa.vue'
 import CartView from '../views/CartView.vue';
 import CheckoutView from '../views/CheckoutView.vue';
 import OrderConfirmationView from '../views/OrderConfirmationView.vue';
+// import NotFoundView from '../views/NotFoundView.vue'; // Opsional: jika Anda punya halaman 404
 
 const routes = [
-  // Halaman Login yang akan dialihkan jika sudah login
+  // Rute Publik (tidak memerlukan autentikasi)
   {
     path: '/',
     name: 'Login',
     component: Login,
-    beforeEnter: (to, from, next) => {
-      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
-      const role = localStorage.getItem('role')
-
-      // Jika sudah login, arahkan berdasarkan role
-      if (isLoggedIn) {
-        if (role === 'admin') {
-          next('/dashboard') // Admin diarahkan ke dashboard
-        } else if (role === 'customer') {
-          next('/home') // Customer diarahkan ke home
-        }
-      } else {
-        next() // Jika belum login, tetap ke halaman login
-      }
-    }
+    meta: { public: true }
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register,
+    meta: { public: true }
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: About,
+    meta: { public: true }
+  },
+  {
+    path: '/forbidden',
+    name: 'Forbidden',
+    component: Forbidden,
+    meta: { public: true }
   },
 
-  { path: '/register', name: 'Register', component: Register },
-
-  // Halaman untuk admin
+  // Rute Admin (memerlukan autentikasi dan role 'admin')
   {
     path: '/dashboard',
     name: 'Dashboard',
     component: Dashboard,
-    meta: { requiresRole: 'admin' }
+    meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
     path: '/update/:id',
     name: 'UpdateUser',
     component: UpdateUser,
     props: true,
-    meta: { requiresRole: 'admin' }
+    meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
     path: '/detail/:id',
     name: 'Detail',
     component: Detail,
     props: true,
-    meta: { requiresRole: 'admin' }
+    meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
     path: '/kelola-pipa',
     name: 'KelolaPipa',
-    component: IndexKelolaPipa, // route untuk kelola pipa
-    meta: { requiresRole: 'admin' }
+    component: IndexKelolaPipa,
+    meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
     path: '/update-pipa/:id',
     name: 'UpdatePipa',
-    component: UpdatePipa, // route untuk update pipa
+    component: UpdatePipa,
     props: true,
-    meta: { requiresRole: 'admin' }
+    meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
     path: '/tambah-pipa',
     name: 'tambah-pipa',
     component: CreatePipa,
-    meta: {
-      requiresAuth: true,
-      role: 'admin'
-    }
+    meta: { requiresAuth: true, roles: ['admin'] }
   },
 
-  // Halaman untuk customer
+  // Rute Customer (memerlukan autentikasi dan role 'customer')
   {
     path: '/customer-page',
     name: 'CustomerPage',
     component: CustomerPage,
-    meta: { requiresRole: 'customer' }
+    meta: { requiresAuth: true, roles: ['customer'] }
   },
   {
     path: '/home',
     name: 'Home',
     component: Home,
-    meta: { requiresRole: 'customer' }
+    meta: { requiresAuth: true, roles: ['customer'] }
   },
-   {
-      path: '/cart',
-      name: 'cart',
-      component: CartView,
-    },
-    {
-      path: '/checkout',
-      name: 'checkout',
-      component: CheckoutView,
-      meta: { requiresAuth: true }, // Membutuhkan login
-    },
-    {
-      path: '/order-confirmation/:orderId', // Parameter dinamis untuk ID pesanan
-      name: 'orderConfirmation',
-      component: OrderConfirmationView,
-      props: true, // Untuk melewatkan orderId sebagai prop ke komponen
-      meta: { requiresAuth: true }, // Membutuhkan login
-    },
+  {
+    path: '/cart',
+    name: 'cart',
+    component: CartView,
+    meta: { requiresAuth: true, roles: ['customer'] } // Cart butuh customer login (sesuai request Anda)
+  },
+  {
+    path: '/checkout',
+    name: 'checkout',
+    component: CheckoutView,
+    meta: { requiresAuth: true, roles: ['customer'] } // Checkout butuh customer login
+  },
+  {
+    path: '/order-confirmation/:orderId',
+    name: 'orderConfirmation',
+    component: OrderConfirmationView,
+    props: true,
+    meta: { requiresAuth: true, roles: ['customer'] }
+  },
 
-  // Halaman umum
-  { path: '/about', name: 'About', component: About },
-
-  // Forbidden page
-  { path: '/forbidden', name: 'Forbidden', component: Forbidden }
+  // Catch-all 404 (optional, tapi sangat disarankan)
+  // {
+  //   path: '/:pathMatch(.*)*',
+  //   name: 'NotFound',
+  //   component: NotFoundView
+  // }
 ]
 
 const router = createRouter({
@@ -132,58 +136,94 @@ const router = createRouter({
   routes
 })
 
-
-// Navigation Guard
 router.beforeEach((to, from, next) => {
-  // Mulai progress bar saat navigasi dimulai
-  NProgress.start()
+  NProgress.start();
 
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
-  const token = localStorage.getItem('jwt')
-  const role = localStorage.getItem('role')
+  let userInfo = null;
+  let isLoggedIn = false;
+  let userRole = null;
 
-  // Logika pengalihan untuk halaman login (rute '/')
-  if (to.path === '/') {
-    if (isLoggedIn) {
-      if (role === 'admin') {
-        NProgress.done() // Selesaikan progress bar jika langsung dialihkan
-        return next('/dashboard')
-      } else if (role === 'customer') {
-        NProgress.done() // Selesaikan progress bar jika langsung dialihkan
-        return next('/home')
+  try {
+    const storedUserInfo = localStorage.getItem('userInfo');
+    if (storedUserInfo) {
+      userInfo = JSON.parse(storedUserInfo);
+      // Validasi dasar: harus ada token dan role
+      if (userInfo && userInfo.token && userInfo.role) {
+        isLoggedIn = true;
+        userRole = userInfo.role;
+      } else {
+        // Data userInfo tidak lengkap/valid, anggap tidak login dan bersihkan
+        console.warn('Router Guard: userInfo incomplete/invalid in localStorage. Clearing.');
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('role');
       }
-    } else {
-      return next() // Lanjutkan ke halaman login jika belum login
+    }
+    // Jika tidak ada storedUserInfo, isLoggedIn sudah false
+  } catch (e) {
+    console.error('Router Guard: Error parsing userInfo from localStorage:', e);
+    // Data rusak, bersihkan localStorage
+    localStorage.removeItem('userInfo');
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('role');
+  }
+
+  // --- DEBUGGING LOGS (JANGAN DIHAPUS SAAT DEBUGGING) ---
+  console.log(`--- Navigation Check: ${from.fullPath} -> ${to.fullPath} ---`);
+  console.log(`isLoggedIn: ${isLoggedIn}`);
+  console.log(`userRole: ${userRole}`);
+  console.log(`to.meta:`, to.meta);
+  // --- END DEBUGGING LOGS ---
+
+  // 1. Pengalihan jika user sudah login dan mencoba mengakses rute publik (Login/Register)
+  if (to.meta.public && isLoggedIn) {
+    NProgress.done();
+    let redirectToHome = { name: 'Home' }; // Default ke Home jika role tidak jelas
+
+    if (userRole === 'admin') {
+      redirectToHome = { name: 'Dashboard' };
+    } else if (userRole === 'customer') {
+      redirectToHome = { name: 'Home' };
+    }
+    console.log(`Guard: Logged-in user trying to access public route. Redirecting to ${redirectToHome.name}.`);
+    return next(redirectToHome);
+  }
+
+  // 2. Jika rute membutuhkan autentikasi TAPI user belum login atau userInfo tidak valid
+  if (to.meta.requiresAuth && !isLoggedIn) {
+    NProgress.done();
+    console.log(`Guard: Route ${to.name} requires auth, but user is not logged in or session invalid. Redirecting to Login.`);
+    // Simpan rute tujuan asli agar bisa redirect kembali setelah login
+    return next({ name: 'Login', query: { redirect: to.fullPath } });
+  }
+
+  // 3. Role-based Access Control
+  // Jika rute membutuhkan role tertentu (melalui `to.meta.roles`) DAN user sudah login
+  if (to.meta.roles && isLoggedIn) {
+    if (!to.meta.roles.includes(userRole)) {
+      // User tidak memiliki role yang diizinkan
+      NProgress.done();
+      console.warn(`Guard: Access Denied! User role "${userRole}" is not allowed for route "${to.name}".`);
+      alert('Anda tidak memiliki izin untuk mengakses halaman ini.'); // Pop-up untuk user
+      // Arahkan kembali ke halaman yang sesuai dengan role user atau ke Forbidden
+      if (userRole === 'admin') {
+        return next({ name: 'Dashboard' });
+      } else if (userRole === 'customer') {
+        return next({ name: 'Home' });
+      } else {
+        // Jika role tidak dikenal atau tidak ada, arahkan ke login atau forbidden
+        return next({ name: 'Forbidden' }); // Atau { name: 'Login' }
+      }
     }
   }
 
-  // Jika belum login dan mencoba mengakses halaman yang membutuhkan login
-  const protectedRoutes = ['/dashboard', '/update', '/detail', '/customer-page', '/home', '/kelola-pipa', '/update-pipa', '/tambah-pipa']
-  if (protectedRoutes.some(path => to.path.startsWith(path)) && (!isLoggedIn || !token)) {
-    NProgress.done() // Selesaikan progress bar jika dialihkan ke login
-    return next('/') // redirect ke login
-  }
-
-  // Role-based access control
-  if (to.meta.requiresRole) {
-    if (to.meta.requiresRole === 'admin' && role !== 'admin') {
-      NProgress.done() // Selesaikan progress bar jika dialihkan ke Forbidden
-      return next('/forbidden') // Redirect ke Forbidden page jika bukan admin
-    }
-
-    if (to.meta.requiresRole === 'customer' && role !== 'customer') {
-      NProgress.done() // Selesaikan progress bar jika dialihkan ke Forbidden
-      return next('/forbidden') // Redirect ke Forbidden page jika bukan customer
-    }
-  }
-
-  next() // Lanjutkan navigasi
-})
+  // Jika semua pemeriksaan lolos, lanjutkan
+  console.log('Guard: Navigation allowed. Proceeding to next().');
+  next();
+});
 
 router.afterEach(() => {
-  // Selesaikan progress bar setelah navigasi selesai (komponen dimuat)
-  NProgress.done()
-})
+  NProgress.done();
+});
 
-
-export default router
+export default router;

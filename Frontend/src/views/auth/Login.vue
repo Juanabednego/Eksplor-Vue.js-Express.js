@@ -55,9 +55,6 @@
           </button>
         </div>
       </form>
-
-
-
     </div>
   </div>
 </template>
@@ -66,15 +63,13 @@
 import { ref } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
-import BE_PRE_URL from '../../url/index.js'
+import BE_PRE_URL from '../../url/index.js' // Pastikan path ini benar
 
 const username = ref('')
 const password = ref('')
 const isLoading = ref(false)
 const errorMessage = ref('')
 const router = useRouter()
-
-const test = ref('')
 
 const handleLogin = async () => {
   isLoading.value = true
@@ -86,28 +81,47 @@ const handleLogin = async () => {
       password: password.value,
     })
 
-    const { data, jwt, role } = response.data
+    // Asumsi response.data memiliki struktur:
+    // {
+    //   _id: '...',
+    //   name: '...',
+    //   email: '...',
+    //   role: '...',
+    //   token: '...' // Ini adalah JWT
+    // }
+    const userData = response.data // userData sekarang berisi semua info, termasuk token
 
+    // --- PERBAIKAN PENTING DI SINI ---
+    // Simpan seluruh objek userData (yang sudah termasuk token) sebagai 'userInfo'
+    localStorage.setItem('userInfo', JSON.stringify(userData))
     localStorage.setItem('isLoggedIn', 'true')
-    localStorage.setItem('jwt', jwt)
-    localStorage.setItem('role', role) // Simpan role
-    localStorage.setItem('userData', JSON.stringify(data))
+    localStorage.setItem('role', userData.role) // Pastikan userData.role ada
+
+    // Hapus item 'jwt' dan 'userData' lama jika masih ada (untuk kebersihan)
+    // localStorage.removeItem('jwt'); // Tidak lagi diperlukan secara terpisah jika token ada di userInfo
+    // localStorage.removeItem('userData'); // Diganti dengan 'userInfo'
 
     if(localStorage.getItem('logout')){
       localStorage.removeItem('logout')
     }
 
+    alert('Login berhasil!'); // Tambahkan alert untuk konfirmasi visual
 
     // Navigasi berdasarkan role
-    if (role === 'admin') {
-      router.push('/dashboard')
-      window.location.reload() // Refresh paksa setelah login admin
-    } else if (role === 'customer') {
-      router.push('/home') // Navigasi ke halaman customer
-      window.location.reload() // Refresh paksa setelah login customer
+    const redirectPath = router.currentRoute.value.query.redirect || null; // Ambil redirect query
+
+    if (userData.role === 'admin') {
+      router.push(redirectPath || { name: 'Dashboard' });
+      // HAPUS window.location.reload() - biarkan router yang menanganinya
+    } else if (userData.role === 'customer') {
+      router.push(redirectPath || { name: 'Home' });
+      // HAPUS window.location.reload() - biarkan router yang menanganinya
+    } else {
+      router.push(redirectPath || { name: 'Home' }); // Fallback
     }
+
   } catch (error) {
-    if (error.response && error.response.data.message) {
+    if (error.response && error.response.data && error.response.data.message) {
       errorMessage.value = error.response.data.message
     } else {
       errorMessage.value = 'Terjadi kesalahan saat login.'
@@ -116,9 +130,6 @@ const handleLogin = async () => {
     isLoading.value = false
   }
 }
-
-
-
 
 const goToRegister = () => {
   router.push('/register')
