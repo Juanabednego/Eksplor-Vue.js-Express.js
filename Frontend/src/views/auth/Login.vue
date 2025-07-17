@@ -81,47 +81,25 @@ const handleLogin = async () => {
       password: password.value,
     })
 
-    // Asumsi response.data memiliki struktur:
-    // {
-    //   _id: '...',
-    //   name: '...',
-    //   email: '...',
-    //   role: '...',
-    //   token: '...' // Ini adalah JWT
-    // }
-    const userData = response.data // userData sekarang berisi semua info, termasuk token
+    const userData = response.data
 
-    // --- PERBAIKAN PENTING DI SINI ---
-    // Simpan seluruh objek userData (yang sudah termasuk token) sebagai 'userInfo'
+    // Simpan informasi login ke localStorage
     localStorage.setItem('userInfo', JSON.stringify(userData))
     localStorage.setItem('isLoggedIn', 'true')
-    localStorage.setItem('role', userData.role) // Pastikan userData.role ada
+    localStorage.setItem('role', userData.role)
 
-    // Hapus item 'jwt' dan 'userData' lama jika masih ada (untuk kebersihan)
-    // localStorage.removeItem('jwt'); // Tidak lagi diperlukan secara terpisah jika token ada di userInfo
-    // localStorage.removeItem('userData'); // Diganti dengan 'userInfo'
-
-    if(localStorage.getItem('logout')){
+    // Bersihkan flag logout jika ada
+    if (localStorage.getItem('logout')) {
       localStorage.removeItem('logout')
     }
 
-    alert('Login berhasil!'); // Tambahkan alert untuk konfirmasi visual
+    alert('Login berhasil!')
 
-    // Navigasi berdasarkan role
-    const redirectPath = router.currentRoute.value.query.redirect || null; // Ambil redirect query
-
-    if (userData.role === 'admin') {
-      router.push(redirectPath || { name: 'Dashboard' });
-      // HAPUS window.location.reload() - biarkan router yang menanganinya
-    } else if (userData.role === 'customer') {
-      router.push(redirectPath || { name: 'Home' });
-      // HAPUS window.location.reload() - biarkan router yang menanganinya
-    } else {
-      router.push(redirectPath || { name: 'Home' }); // Fallback
-    }
+    // ✅ Langsung redirect ke /home
+    router.push({ name: 'Home' })
 
   } catch (error) {
-    if (error.response && error.response.data && error.response.data.message) {
+    if (error.response?.data?.message) {
       errorMessage.value = error.response.data.message
     } else {
       errorMessage.value = 'Terjadi kesalahan saat login.'

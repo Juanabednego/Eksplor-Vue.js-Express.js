@@ -1,5 +1,5 @@
 import express from "express"
-
+import dotenv from "dotenv"
 // Router
 import authRouter from './routes/authRouter.js'
 import lapanganRouter from './routes/lapanganRouter.js'
@@ -9,7 +9,7 @@ import orderRoutes from './routes/orderRoutes.js'
 import cors from 'cors'
 
 
-import dotenv from "dotenv"
+
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js"
 import cookieParser from "cookie-parser"
 import helmet from "helmet"
@@ -19,7 +19,7 @@ import { v2 as cloudinary } from 'cloudinary';
 
 
 const app = express()
-const port = 3000
+const port = 9001
 
 
 // Configuration
@@ -38,12 +38,10 @@ app.use(cookieParser())
 app.use(express.static('./public'))
 
 app.use(cors({
-  origin: 'http://localhost:5173', // sesuaikan dengan port frontend
+  origin: 'http://localhost:5173',
   credentials: true
 }))
 
-
-dotenv.config()
 
 
 app.use('/api/v1/auth', authRouter)
@@ -62,8 +60,10 @@ app.use(errorHandler)
 import mongoose from "mongoose";
 
 // Gantilah dengan URI Atlas Anda
-const uri = process.env.DATABASE;
+const uri ="mongodb+srv://benyaminsibarani2406:v8W62Q3ojhXQ8qJh@gorramos.nyb5u.mongodb.net/MyDatabase?retryWrites=true&w=majority&appName=GorRamos"
 
+
+console.log("MongoDB URI:", uri);
 async function connectToDatabase() {
   try {
     // Menghubungkan ke MongoDB Atlas menggunakan Mongoose
@@ -79,11 +79,11 @@ async function connectToDatabase() {
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } catch (error) {
     console.error("Error connecting to MongoDB Atlas:", error);
-    process.exit(1); // Keluar dari aplikasi jika koneksi gagal
+    process.exit(1);
   }
 }
 
-connectToDatabase(); // Jalankan fungsi koneksi
+connectToDatabase(); 
 
 
 app.listen(port, () => console.log(`Server up and run at ${port} port`))

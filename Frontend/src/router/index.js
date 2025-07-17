@@ -101,26 +101,26 @@ const routes = [
     path: '/home',
     name: 'Home',
     component: Home,
-    meta: { requiresAuth: true, roles: ['customer'] }
+   
   },
-  {
-    path: '/cart',
-    name: 'cart',
-    component: CartView,
-    meta: { requiresAuth: true, roles: ['customer'] } // Cart butuh customer login (sesuai request Anda)
-  },
-  {
-    path: '/checkout',
-    name: 'checkout',
-    component: CheckoutView,
-    meta: { requiresAuth: true, roles: ['customer'] } // Checkout butuh customer login
-  },
+ {
+  path: '/cart',
+  name: 'cart',
+  component: CartView,
+  meta: { public: true } // atau hapus `meta` agar dianggap publik
+},
+{
+  path: '/checkout',
+  name: 'checkout',
+  component: CheckoutView,
+  meta: { public: true } // ini penting agar tidak dicegat guard
+},
   {
     path: '/order-confirmation/:orderId',
     name: 'orderConfirmation',
     component: OrderConfirmationView,
     props: true,
-    meta: { requiresAuth: true, roles: ['customer'] }
+   
   },
 
   // Catch-all 404 (optional, tapi sangat disarankan)
@@ -150,7 +150,7 @@ router.beforeEach((to, from, next) => {
       // Validasi dasar: harus ada token dan role
       if (userInfo && userInfo.token && userInfo.role) {
         isLoggedIn = true;
-        userRole = userInfo.role;
+        userRole = userInfo.role; 
       } else {
         // Data userInfo tidak lengkap/valid, anggap tidak login dan bersihkan
         console.warn('Router Guard: userInfo incomplete/invalid in localStorage. Clearing.');

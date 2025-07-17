@@ -1,122 +1,110 @@
 <template>
-  <div class="min-h-screen bg-gray-100 py-8">
+  <div v-if="isCheckingLogin" class="min-h-screen flex items-center justify-center">
+    <p class="text-gray-600 text-lg">Memuat halaman checkout...</p>
+  </div>
+
+  <div v-else class="min-h-screen bg-gray-100 py-8">
     <div class="container mx-auto px-4">
       <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Selesaikan Pembelian Anda</h1>
 
+      <!-- Tombol Kembali -->
       <div class="mb-4">
-        <button @click="goBackToCart" class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-          </svg>
-          Kembali ke Keranjang
+        <button @click="goBackToCart" class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+          ← Kembali ke Keranjang
         </button>
       </div>
 
+      <!-- Konten Utama -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Form Pengiriman & Pembayaran -->
         <div class="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-2xl font-semibold text-gray-800 mb-4">1. Informasi Pengiriman</h2>
+          <h2 class="text-2xl font-semibold mb-4">1. Informasi Pengiriman</h2>
           <form @submit.prevent="submitOrder">
             <div class="mb-4">
-              <label for="address" class="block text-gray-700 text-sm font-bold mb-2">Alamat Lengkap:</label>
-              <input type="text" id="address" v-model="shippingAddress.address" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <label class="block mb-1">Alamat Lengkap</label>
+              <input v-model="shippingAddress.address" required class="w-full border p-2 rounded" />
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="grid grid-cols-2 gap-4">
               <div>
-                <label for="city" class="block text-gray-700 text-sm font-bold mb-2">Kota:</label>
-                <input type="text" id="city" v-model="shippingAddress.city" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <label class="block mb-1">Kota</label>
+                <input v-model="shippingAddress.city" required class="w-full border p-2 rounded" />
               </div>
               <div>
-                <label for="postalCode" class="block text-gray-700 text-sm font-bold mb-2">Kode Pos:</label>
-                <input type="text" id="postalCode" v-model="shippingAddress.postalCode" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <label class="block mb-1">Kode Pos</label>
+                <input v-model="shippingAddress.postalCode" required class="w-full border p-2 rounded" />
               </div>
             </div>
-            <div class="mb-6">
-              <label for="country" class="block text-gray-700 text-sm font-bold mb-2">Negara:</label>
-              <input type="text" id="country" v-model="shippingAddress.country" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            <div class="mt-4">
+              <label class="block mb-1">Negara</label>
+              <input v-model="shippingAddress.country" required class="w-full border p-2 rounded" />
             </div>
 
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4 mt-8">2. Metode Pembayaran</h2>
-            <div class="mb-6">
-              <label class="inline-flex items-center mb-2">
-                <input type="radio" class="form-radio h-5 w-5 text-blue-600" name="paymentMethod" value="Transfer Bank" v-model="paymentMethod" checked>
-                <span class="ml-2 text-gray-700">Transfer Bank</span>
-              </label>
-              <label class="inline-flex items-center ml-6">
-                <input type="radio" class="form-radio h-5 w-5 text-gray-400" name="paymentMethod" value="Kartu Kredit/Debit" v-model="paymentMethod" disabled>
-                <span class="ml-2 text-gray-500">Kartu Kredit/Debit (Segera Hadir)</span>
-              </label>
+          <div class="mb-4">
+  <label class="block mb-1">Pilih Metode Pembayaran</label>
+  <select v-model="paymentMethod" class="w-full border p-2 rounded">
+    <option disabled value="">-- Pilih Metode Pembayaran --</option>
+    <option value="Transfer Bank">Transfer Bank (BCA)</option>
+    <option value="Dana">Dana</option>
+    <option value="OVO">OVO</option>
+  </select>
+</div>
 
-              <div v-if="paymentMethod === 'Transfer Bank'" class="bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 mt-4 rounded">
-                  <p class="font-bold text-lg mb-2">Informasi Rekening Bank Tujuan:</p>
-                  <p class="text-sm">Mohon transfer total pembayaran ke rekening di bawah ini:</p>
-                  <div class="mt-2 p-3 bg-white rounded-md border border-blue-200">
-                      <p class="mb-1"><strong>Bank:</strong> {{ bankDetails.bankName }}</p>
-                      <p class="mb-1"><strong>Nomor Rekening:</strong> <span class="font-mono text-xl font-bold select-all">{{ bankDetails.accountNumber }}</span></p>
-                      <p><strong>Atas Nama:</strong> {{ bankDetails.accountName }}</p>
-                  </div>
-                  <p class="mt-3 text-sm font-semibold">Setelah transfer, segera unggah bukti transfer Anda.</p>
-              </div>
+<!-- Info dinamis -->
+<div v-if="paymentMethod" class="bg-blue-50 text-blue-800 p-3 rounded text-sm">
+  <template v-if="paymentMethod === 'Transfer Bank'">
+    Silakan transfer ke <strong>BCA 123456789</strong>
+  </template>
+  <template v-else-if="paymentMethod === 'Dana'">
+    Kirim pembayaran ke <strong>0812-3456-7890</strong>
+  </template>
+  <template v-else-if="paymentMethod === 'OVO'">
+    Kirim pembayaran ke <strong>0812-9876-5432</strong>
+  </template>
+</div>
 
-              <div v-if="paymentMethod === 'Transfer Bank'" class="mt-6">
-                  <label for="proofOfTransfer" class="block text-gray-700 text-sm font-bold mb-2">Unggah Bukti Transfer (Gambar JPG/PNG/GIF, Maks 5MB):</label>
-                  <input
-                      type="file"
-                      id="proofOfTransfer"
-                      @change="handleFileUpload"
-                      accept="image/jpeg,image/png,image/gif"
-                      class="block w-full text-sm text-gray-500
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-full file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-blue-50 file:text-blue-700
-                            hover:file:bg-blue-100"
-                      required
-                  >
-                  <p v-if="proofOfTransferFile" class="mt-2 text-sm text-gray-600">
-                      File terpilih: <span class="font-semibold">{{ proofOfTransferFile.name }}</span> ({{ (proofOfTransferFile.size / 1024 / 1024).toFixed(2) }} MB)
-                  </p>
-                  <p v-if="fileError" class="text-red-500 text-sm mt-1">{{ fileError }}</p>
-              </div>
+
+
+            <!-- Upload Bukti -->
+            <div class="mt-4">
+              <label>Bukti Transfer (JPG/PNG/GIF, maks 5MB)</label>
+              <input type="file" @change="handleFileUpload" accept="image/*" class="block mt-1" required />
+              <p v-if="proofOfTransferFile" class="text-sm mt-1">File: {{ proofOfTransferFile.name }}</p>
+              <p v-if="fileError" class="text-red-500">{{ fileError }}</p>
             </div>
 
-            <div class="flex items-center mb-4">
-              <input type="checkbox" id="terms" v-model="agreedToTerms" class="form-checkbox h-5 w-5 text-blue-600" required>
-              <label for="terms" class="ml-2 text-gray-700 text-sm">Saya menyetujui <a href="#" class="text-blue-500 hover:underline">Syarat & Ketentuan</a></label>
+            <div class="mt-4">
+              <input type="checkbox" v-model="agreedToTerms" required />
+              <label>Saya menyetujui syarat & ketentuan</label>
             </div>
 
-            <button type="submit" :disabled="loading || !agreedToTerms || (paymentMethod === 'Transfer Bank' && !proofOfTransferFile) || cartStore.cartTotalItems === 0"
-                    class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              {{ loading ? 'Memproses Pesanan...' : 'Bayar Sekarang' }}
+            <button type="submit" class="mt-4 w-full bg-blue-600 text-white p-3 rounded"
+              :disabled="!agreedToTerms || !proofOfTransferFile || loading">
+              {{ loading ? 'Memproses...' : 'Bayar Sekarang' }}
             </button>
-            <p v-if="error" class="text-red-500 text-center mt-2">{{ error }}</p>
+
+            <p v-if="error" class="text-red-500 mt-2">{{ error }}</p>
           </form>
         </div>
 
-        <div class="lg:w-1/3 bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Ringkasan Pesanan</h2>
-          <div class="mb-4 border-b pb-4">
-            <div v-for="item in cartStore.items" :key="item.product._id" class="flex justify-between items-center mb-2">
-              <span>{{ item.product.name }} ({{ item.quantity }}x)</span>
-              <span>Rp {{ (item.product.price * item.quantity).toLocaleString('id-ID') }}</span>
-            </div>
+        <!-- Ringkasan -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h2 class="text-xl font-semibold mb-4">Ringkasan Pesanan</h2>
+          <div v-for="item in cartStore.items" :key="item.product._id" class="flex justify-between mb-2">
+            <span>{{ item.product.name }} x{{ item.quantity }}</span>
+            <span>Rp {{ (item.product.price * item.quantity).toLocaleString('id-ID') }}</span>
           </div>
-
-          <div class="flex justify-between mb-2">
-            <span>Subtotal Barang:</span>
-            <span class="font-bold">Rp {{ cartStore.cartSubtotal.toLocaleString('id-ID') }}</span>
+          <hr class="my-2" />
+          <div class="flex justify-between">
+            <span>Subtotal</span>
+            <span>Rp {{ cartStore.cartSubtotal.toLocaleString('id-ID') }}</span>
           </div>
-          <div class="flex justify-between mb-2">
-            <span>Ongkos Kirim:</span>
-            <span class="font-bold">Rp {{ shippingPrice.toLocaleString('id-ID') }}</span>
+          <div class="flex justify-between">
+            <span>Ongkir</span>
+            <span>Rp {{ shippingPrice.toLocaleString('id-ID') }}</span>
           </div>
-          <div class="flex justify-between mb-4 border-b pb-4">
-            <span>Pajak (0%):</span>
-            <span class="font-bold">Rp {{ taxPrice.toLocaleString('id-ID') }}</span>
-          </div>
-
-          <div class="flex justify-between items-center text-xl font-bold">
-            <span>Total Pembayaran:</span>
-            <span class="text-blue-600">Rp {{ totalPrice.toLocaleString('id-ID') }}</span>
+          <div class="flex justify-between font-bold mt-2">
+            <span>Total</span>
+            <span>Rp {{ totalPrice.toLocaleString('id-ID') }}</span>
           </div>
         </div>
       </div>
@@ -125,172 +113,102 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useCartStore } from '../stores/cart';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 
-const cartStore = useCartStore();
 const router = useRouter();
+const cartStore = useCartStore();
 
-const shippingAddress = ref({
-  address: '',
-  city: '',
-  postalCode: '',
-  country: 'Indonesia',
-});
-const paymentMethod = ref('Transfer Bank'); // Default ke Transfer Bank
+const shippingAddress = ref({ address: '', city: '', postalCode: '', country: 'Indonesia' });
+const paymentMethod = ref('Transfer Bank');
 const agreedToTerms = ref(false);
 const loading = ref(false);
 const error = ref(null);
-const fileError = ref(null); // Untuk error spesifik pada upload file
-
-const proofOfTransferFile = ref(null); // Ref untuk menyimpan objek File bukti transfer
-
-// Detail rekening bank tujuan (INI ADALAH DATA RIIL, SILAKAN GANTI DENGAN REKENING ASLI ANDA)
-const bankDetails = ref({
-    bankName: 'Bank Mandiri',
-    accountNumber: '1234567890123', // Contoh nomor rekening bank mandiri
-    accountName: 'PT. Pipa Distribusi Utama', // Contoh nama pemilik rekening
-});
-
-const shippingPrice = ref(10000); // Contoh: ongkir tetap Rp 10.000
-const taxPrice = ref(0); // Contoh: pajak 0%
+const fileError = ref(null);
+const proofOfTransferFile = ref(null);
+const shippingPrice = ref(10000);
+const taxPrice = ref(0);
+const isCheckingLogin = ref(true);
+const userInfo = ref(null);
 
 const itemsPrice = computed(() => cartStore.cartSubtotal);
 const totalPrice = computed(() => itemsPrice.value + shippingPrice.value + taxPrice.value);
 
-const userInfo = ref(null);
+const goBackToCart = () => router.push('/cart');
 
 onMounted(() => {
-  const storedUserInfo = localStorage.getItem('userInfo');
-  if (storedUserInfo) {
-    userInfo.value = JSON.parse(storedUserInfo);
-  } else {
-    router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } });
+  const storedUser = localStorage.getItem('userInfo');
+  if (storedUser) {
+    try {
+      userInfo.value = JSON.parse(storedUser);
+    } catch (e) {
+      console.warn('Gagal parsing userInfo:', e);
+      localStorage.removeItem('userInfo');
+    }
   }
-
-  // Muat ulang keranjang dan hitung ongkir saat komponen dimuat
   cartStore.loadCartFromLocalStorage();
-  // cartStore.calculateShippingCost(); // Jika Anda memiliki logika ongkir dinamis di store
-  // shippingPrice.value = cartStore.shippingCost; // Pastikan ongkir disinkronkan dari store
+  isCheckingLogin.value = false; // Selesai pengecekan
 });
-
-const goBackToCart = () => {
-  router.push('/cart');
-};
 
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
-  fileError.value = null; // Reset error file sebelumnya
+  fileError.value = null;
 
-  if (file) {
-    // Validasi tipe file dan ukuran
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-    const maxSizeMB = 5; // Maksimal 5MB
-
-    if (!allowedTypes.includes(file.type)) {
-      proofOfTransferFile.value = null;
-      fileError.value = 'Hanya file gambar (JPG, PNG, GIF) yang diizinkan.';
-      return;
-    }
-    if (file.size > maxSizeMB * 1024 * 1024) {
-      proofOfTransferFile.value = null;
-      fileError.value = `Ukuran file terlalu besar. Maksimal ${maxSizeMB}MB.`;
-      return;
-    }
-
+  const allowed = ['image/jpeg', 'image/png', 'image/gif'];
+  if (file && allowed.includes(file.type) && file.size <= 5 * 1024 * 1024) {
     proofOfTransferFile.value = file;
   } else {
+    fileError.value = 'File tidak valid atau lebih dari 5MB';
     proofOfTransferFile.value = null;
-    fileError.value = 'Mohon pilih file bukti transfer.';
   }
 };
 
 const submitOrder = async () => {
-  // --- Validasi Frontend Awal ---
-  if (!agreedToTerms.value) {
-    error.value = 'Anda harus menyetujui Syarat & Ketentuan.';
-    return;
-  }
-
-  if (cartStore.items.length === 0) {
-    error.value = 'Keranjang belanja Anda kosong. Tambahkan item sebelum checkout.';
-    return;
-  }
-
   if (!userInfo.value || !userInfo.value.token) {
-    error.value = 'Anda belum login atau sesi Anda telah berakhir. Harap login kembali.';
+    error.value = 'Anda belum login. Silakan login kembali.';
     router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } });
     return;
   }
 
-  if (paymentMethod.value === 'Transfer Bank' && !proofOfTransferFile.value) {
-      error.value = 'Mohon unggah bukti transfer untuk melanjutkan pembayaran.';
-      return;
-  }
-  if (fileError.value) { // Jika ada error dari handleFileUpload, hentikan submit
-    error.value = fileError.value;
-    return;
-  }
-
-
   loading.value = true;
-  error.value = null; // Reset error umum
+  error.value = null;
 
   try {
-    // Buat objek FormData untuk mengirim data teks dan file
     const formData = new FormData();
-    formData.append('shippingAddress', JSON.stringify(shippingAddress.value)); // Objek perlu di-stringify
+    formData.append('shippingAddress', JSON.stringify(shippingAddress.value));
     formData.append('paymentMethod', paymentMethod.value);
     formData.append('itemsPrice', itemsPrice.value);
     formData.append('shippingPrice', shippingPrice.value);
     formData.append('taxPrice', taxPrice.value);
     formData.append('totalPrice', totalPrice.value);
-
-    // Siapkan orderItems untuk backend (hanya data yang diperlukan)
-    const orderItemsForBackend = cartStore.items.map(item => ({
-      product: item.product._id, // Hanya kirim ID produk
+    formData.append('orderItems', JSON.stringify(cartStore.items.map(item => ({
+      product: item.product._id,
       name: item.product.name,
       quantity: item.quantity,
       price: item.product.price,
-      image: item.product.imageUrl || 'https://via.placeholder.com/150', // Pastikan URL gambar produk ada
-    }));
-    formData.append('orderItems', JSON.stringify(orderItemsForBackend)); // Array of objects perlu di-stringify
-
-    // Tambahkan file bukti transfer jika ada
-    if (proofOfTransferFile.value) {
-      formData.append('proofOfTransfer', proofOfTransferFile.value); // File akan di-append langsung
-    }
-
-    const config = {
-      headers: {
-        'Content-Type': 'multipart/form-data', // PENTING: Untuk FormData
-        Authorization: `Bearer ${userInfo.value.token}`,
-      },
-    };
+      image: item.product.imageUrl || '',
+    }))));
+    formData.append('proofOfTransfer', proofOfTransferFile.value);
 
     const { data } = await axios.post(
       `${import.meta.env.VITE_API_BASE_URL}/orders`,
-      formData, // Kirim objek FormData
-      config
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${userInfo.value.token}`
+        }
+      }
     );
 
-    // Jika pesanan berhasil dibuat
-    cartStore.clearCart(); // Kosongkan keranjang
-    alert('Pesanan Anda berhasil dibuat! Mohon tunggu konfirmasi pembayaran dari admin.');
-    router.push({ name: 'orderConfirmation', params: { orderId: data._id } }); // Arahkan ke halaman konfirmasi
+    cartStore.clearCart();
+    alert('Pesanan berhasil dibuat!');
+    router.push({ name: 'orderConfirmation', params: { orderId: data._id } });
   } catch (err) {
-    console.error('Error creating order:', err);
-    error.value = err.response && err.response.data.message
-      ? err.response.data.message
-      : err.message;
-
-    if (err.response && err.response.status === 401) {
-        alert('Sesi Anda telah berakhir. Harap login kembali.');
-        localStorage.removeItem('userInfo');
-        router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } });
-    }
+    console.error('Gagal submit pesanan:', err);
+    error.value = err.response?.data?.message || err.message;
   } finally {
     loading.value = false;
   }
@@ -298,14 +216,12 @@ const submitOrder = async () => {
 </script>
 
 <style scoped>
-/* Anda bisa menambahkan gaya kustom di sini */
-/* Contoh untuk menyembunyikan panah input number jika Anda memiliki */
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 input[type="number"] {
-    -moz-appearance: textfield;
+  -moz-appearance: textfield;
 }
 </style>
