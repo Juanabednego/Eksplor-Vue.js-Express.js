@@ -1,14 +1,12 @@
 <template>
-  <div>
+ <div>
   <Navbar />
-
-    <!-- Tampilan Halaman lainnya -->
-    <router-view />
-  </div>
+  <router-view />
+ </div>
 </template>
 
-<script setup>
-import { computed } from 'vue'
-import Navbar from './views/Navbar.vue';
 
+
+<script setup>
+import Navbar from '@/components/Navbar.vue';
 </script>

@@ -1,14 +1,11 @@
-// frontend/src/stores/cart.js
 import { defineStore } from 'pinia';
 // import axios from 'axios'; // Tidak langsung digunakan di sini, tapi di view Checkout
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9000/api/v1';
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
-    items: [], // Array of { product: { _id, name, price, image, stock, ... }, quantity: number }
-    // loading dan error bisa ditambahkan jika ingin sinkronisasi real-time dengan backend
-    // shippingCost: 0, // Anda bisa menambahkan ini jika ingin menyimpan ongkir di store
+    items: [], 
   }),
   getters: {
     cartTotalItems: (state) => state.items.reduce((total, item) => total + item.quantity, 0),
@@ -82,11 +79,5 @@ export const useCartStore = defineStore('cart', {
       this.saveCartToLocalStorage();
     },
 
-    // Contoh: Jika Anda ingin memiliki logika penghitungan ongkir dinamis di store
-    // calculateShippingCost() {
-    //     // Logika kompleks untuk menghitung ongkir bisa di sini
-    //     // Misalnya berdasarkan total berat, lokasi, dll.
-    //     this.shippingCost = 10000; // Contoh statis
-    // },
   },
 });

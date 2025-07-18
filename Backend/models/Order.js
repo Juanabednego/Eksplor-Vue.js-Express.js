@@ -1,3 +1,4 @@
+// backend/models/Order.js
 import mongoose from 'mongoose';
 
 const orderItemSchema = mongoose.Schema({
@@ -8,90 +9,88 @@ const orderItemSchema = mongoose.Schema({
   },
   name: { type: String, required: true }, // Biasanya pipeName dari pipa
   quantity: { type: Number, required: true },
-  price: { type: Number, required: true },
-  image: { type: String, required: true },
+  price: { type: Number, required: true }, // Ini akan diambil dari pricePerMeter * quantity di controller
+  image: { type: String, required: false },
 });
 
 const orderSchema = mongoose.Schema(
   {
-    user: { // Pengguna yang membuat pesanan
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: 'User', // Referensi ke model User (asumsi nama modelnya 'User')
+      ref: 'User', // Mengacu ke model User Anda (konsisten)
     },
-    orderItems: [orderItemSchema], // Array dari item-item yang dipesan
-    shippingAddress: { // Detail alamat pengiriman
+    orderItems: [orderItemSchema],
+    shippingAddress: {
       address: { type: String, required: true },
       city: { type: String, required: true },
       postalCode: { type: String, required: true },
       country: { type: String, required: true },
     },
-    paymentMethod: { // Metode pembayaran yang dipilih
+    paymentMethod: {
       type: String,
       required: true,
     },
-    paymentResult: { // Detail transaksi dari Payment Gateway (opsional, akan diisi setelah pembayaran)
+    paymentResult: {
       id: { type: String },
       status: { type: String },
       update_time: { type: String },
       email_address: { type: String },
     },
-    itemsPrice: { // Subtotal harga barang saja
+    itemsPrice: {
       type: Number,
       required: true,
       default: 0.0,
     },
-    taxPrice: { // Harga pajak (jika ada)
+    taxPrice: {
       type: Number,
       required: true,
       default: 0.0,
     },
-    shippingPrice: { // Harga ongkos kirim
+    shippingPrice: {
       type: Number,
       required: true,
       default: 0.0,
     },
-    totalPrice: { // Total keseluruhan yang harus dibayar
+    totalPrice: {
       type: Number,
       required: true,
       default: 0.0,
     },
-    isPaid: { // Status pembayaran (sudah diverifikasi admin)
+    isPaid: {
       type: Boolean,
       required: true,
       default: false,
     },
-    paidAt: { // Tanggal pembayaran diverifikasi
+    paidAt: {
       type: Date,
     },
-    isDelivered: { // Status pengiriman (sudah dikirim)
+    isDelivered: {
       type: Boolean,
       required: true,
       default: false,
     },
-    deliveredAt: { // Tanggal pengiriman
+    deliveredAt: {
       type: Date,
     },
-    // --- FIELD BARU YANG DITAMBAHKAN/DIUBAH ---
-    orderStatus: { // Status alur pesanan (lebih rinci dari isPaid/isDelivered)
+    orderStatus: {
       type: String,
       required: true,
-      default: 'Pending Payment', // Status awal saat order dibuat
+      default: 'Pending Payment',
       enum: ['Pending Payment', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Refunded'],
     },
-    proofOfTransferImage: { // URL ke gambar bukti transfer
+    proofOfTransferImage: {
       type: String,
       required: function() {
-        // Field ini hanya wajib jika paymentMethod adalah 'Transfer Bank'
         return this.paymentMethod === 'Transfer Bank';
       },
     },
-    adminNotes: { // Catatan internal untuk admin
+    adminNotes: {
       type: String,
     },
   },
   {
-    timestamps: true, // Otomatis menambahkan createdAt dan updatedAt
+    timestamps: true,
   }
 );
 

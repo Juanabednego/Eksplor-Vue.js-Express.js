@@ -23,6 +23,7 @@
         </div>
       </div>
     </div>
+    
 
     <div class="container mx-auto px-4 py-12">
       <div v-if="loading" class="flex justify-center items-center py-20">
@@ -234,7 +235,8 @@ import BE_PRE_URL from '../url' // Pastikan file ini ada dan berisi URL dasar ba
 
 // *** IMPORT TAMBAHAN YANG DIPERLUKAN ***
 import { useRouter } from 'vue-router' // Import useRouter untuk navigasi
-import { useCartStore } from '../stores/cart' // Import useCartStore dari Pinia
+import { useCartStore } from '../stores/cart' 
+
 
 // Reactive states
 const loading = ref(true)

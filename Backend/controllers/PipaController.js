@@ -154,3 +154,4 @@ export const deletePipa = asyncHandler(async (req, res) => {
     await Pipe.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "Pipa berhasil dihapus" });
 });
+

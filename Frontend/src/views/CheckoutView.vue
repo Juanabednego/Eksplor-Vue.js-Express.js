@@ -7,16 +7,13 @@
     <div class="container mx-auto px-4">
       <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Selesaikan Pembelian Anda</h1>
 
-      <!-- Tombol Kembali -->
       <div class="mb-4">
         <button @click="goBackToCart" class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
           ← Kembali ke Keranjang
         </button>
       </div>
 
-      <!-- Konten Utama -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Form Pengiriman & Pembayaran -->
         <div class="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
           <h2 class="text-2xl font-semibold mb-4">1. Informasi Pengiriman</h2>
           <form @submit.prevent="submitOrder">
@@ -39,46 +36,49 @@
               <input v-model="shippingAddress.country" required class="w-full border p-2 rounded" />
             </div>
 
-          <div class="mb-4">
-  <label class="block mb-1">Pilih Metode Pembayaran</label>
-  <select v-model="paymentMethod" class="w-full border p-2 rounded">
-    <option disabled value="">-- Pilih Metode Pembayaran --</option>
-    <option value="Transfer Bank">Transfer Bank (BCA)</option>
-    <option value="Dana">Dana</option>
-    <option value="OVO">OVO</option>
-  </select>
-</div>
+            <div class="mb-4 mt-6">
+              <h2 class="text-2xl font-semibold mb-4">2. Metode Pembayaran</h2>
+              <label class="block mb-1">Pilih Metode Pembayaran</label>
+              <select v-model="paymentMethod" class="w-full border p-2 rounded" required>
+                <option disabled value="">-- Pilih Metode Pembayaran --</option>
+                <option value="Transfer Bank">Transfer Bank (BCA)</option>
+                <option value="Dana">Dana</option>
+                <option value="OVO">OVO</option>
+              </select>
+            </div>
 
-<!-- Info dinamis -->
-<div v-if="paymentMethod" class="bg-blue-50 text-blue-800 p-3 rounded text-sm">
-  <template v-if="paymentMethod === 'Transfer Bank'">
-    Silakan transfer ke <strong>BCA 123456789</strong>
-  </template>
-  <template v-else-if="paymentMethod === 'Dana'">
-    Kirim pembayaran ke <strong>0812-3456-7890</strong>
-  </template>
-  <template v-else-if="paymentMethod === 'OVO'">
-    Kirim pembayaran ke <strong>0812-9876-5432</strong>
-  </template>
-</div>
+            <div v-if="paymentMethod" class="bg-blue-50 text-blue-800 p-3 rounded text-sm mb-4">
+              <template v-if="paymentMethod === 'Transfer Bank'">
+                Silakan transfer ke <strong>BCA 123456789</strong>
+              </template>
+              <template v-else-if="paymentMethod === 'Dana'">
+                Kirim pembayaran ke <strong>0812-3456-7890</strong>
+              </template>
+              <template v-else-if="paymentMethod === 'OVO'">
+                Kirim pembayaran ke <strong>0812-9876-5432</strong>
+              </template>
+            </div>
 
-
-
-            <!-- Upload Bukti -->
-            <div class="mt-4">
-              <label>Bukti Transfer (JPG/PNG/GIF, maks 5MB)</label>
-              <input type="file" @change="handleFileUpload" accept="image/*" class="block mt-1" required />
+            <div class="mt-4" v-if="paymentMethod === 'Transfer Bank' || paymentMethod === 'Dana' || paymentMethod === 'OVO'">
+              <label>Bukti Transfer / Pembayaran (JPG/PNG/GIF, maks 5MB)</label>
+              <input
+                type="file"
+                @change="handleFileUpload"
+                accept="image/*"
+                :required="requiresProof"
+                class="block mt-1"
+              />
               <p v-if="proofOfTransferFile" class="text-sm mt-1">File: {{ proofOfTransferFile.name }}</p>
               <p v-if="fileError" class="text-red-500">{{ fileError }}</p>
             </div>
 
             <div class="mt-4">
-              <input type="checkbox" v-model="agreedToTerms" required />
+              <input type="checkbox" v-model="agreedToTerms" required class="mr-2" />
               <label>Saya menyetujui syarat & ketentuan</label>
             </div>
 
             <button type="submit" class="mt-4 w-full bg-blue-600 text-white p-3 rounded"
-              :disabled="!agreedToTerms || !proofOfTransferFile || loading">
+              :disabled="!agreedToTerms || (requiresProof && !proofOfTransferFile) || loading">
               {{ loading ? 'Memproses...' : 'Bayar Sekarang' }}
             </button>
 
@@ -86,7 +86,6 @@
           </form>
         </div>
 
-        <!-- Ringkasan -->
         <div class="bg-white rounded-lg shadow-md p-6">
           <h2 class="text-xl font-semibold mb-4">Ringkasan Pesanan</h2>
           <div v-for="item in cartStore.items" :key="item.product._id" class="flex justify-between mb-2">
@@ -95,15 +94,19 @@
           </div>
           <hr class="my-2" />
           <div class="flex justify-between">
-            <span>Subtotal</span>
+            <span>Subtotal Barang</span>
             <span>Rp {{ cartStore.cartSubtotal.toLocaleString('id-ID') }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Pajak ({{ (taxRate * 100) }}%)</span>
+            <span>Rp {{ taxPrice.toLocaleString('id-ID') }}</span>
           </div>
           <div class="flex justify-between">
             <span>Ongkir</span>
             <span>Rp {{ shippingPrice.toLocaleString('id-ID') }}</span>
           </div>
-          <div class="flex justify-between font-bold mt-2">
-            <span>Total</span>
+          <div class="flex justify-between font-bold text-lg mt-2 pt-2 border-t border-gray-200">
+            <span>Total Pembayaran</span>
             <span>Rp {{ totalPrice.toLocaleString('id-ID') }}</span>
           </div>
         </div>
@@ -117,39 +120,71 @@ import { ref, onMounted, computed } from 'vue';
 import { useCartStore } from '../stores/cart';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import BE_PRE_URL from '../url/index.js';
 
 const router = useRouter();
 const cartStore = useCartStore();
 
 const shippingAddress = ref({ address: '', city: '', postalCode: '', country: 'Indonesia' });
-const paymentMethod = ref('Transfer Bank');
+const paymentMethod = ref('Transfer Bank'); // Default value
 const agreedToTerms = ref(false);
 const loading = ref(false);
 const error = ref(null);
 const fileError = ref(null);
 const proofOfTransferFile = ref(null);
-const shippingPrice = ref(10000);
-const taxPrice = ref(0);
+
+const shippingPrice = ref(10000); // Contoh biaya ongkir
+const taxRate = ref(0.10); // Pajak 10%
+
 const isCheckingLogin = ref(true);
 const userInfo = ref(null);
 
+// Computed properties for price calculations
 const itemsPrice = computed(() => cartStore.cartSubtotal);
+const taxPrice = computed(() => itemsPrice.value * taxRate.value);
 const totalPrice = computed(() => itemsPrice.value + shippingPrice.value + taxPrice.value);
+
+const requiresProof = computed(() => {
+  const methodsRequiringProof = ['Transfer Bank', 'Dana', 'OVO'];
+  return methodsRequiringProof.includes(paymentMethod.value);
+});
 
 const goBackToCart = () => router.push('/cart');
 
-onMounted(() => {
-  const storedUser = localStorage.getItem('userInfo');
-  if (storedUser) {
-    try {
-      userInfo.value = JSON.parse(storedUser);
-    } catch (e) {
-      console.warn('Gagal parsing userInfo:', e);
-      localStorage.removeItem('userInfo');
-    }
+// Helper: Ambil user dan token dari localStorage
+function getUserFromLocalStorage() {
+  const user = localStorage.getItem('userData');
+  const token = localStorage.getItem('jwt');
+  if (!user || !token) return null;
+
+  try {
+    const parsed = JSON.parse(user);
+    parsed.token = token;
+    return parsed;
+  } catch {
+    return null;
   }
+}
+
+onMounted(() => {
+  const storedUser = getUserFromLocalStorage();
+  if (!storedUser || !storedUser.token) {
+    alert('Anda harus login untuk melakukan pembelian.');
+    router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } });
+    return;
+  }
+
+  userInfo.value = storedUser;
+
   cartStore.loadCartFromLocalStorage();
-  isCheckingLogin.value = false; // Selesai pengecekan
+
+  if (cartStore.items.length === 0) {
+    alert('Keranjang belanja Anda kosong, silakan tambahkan produk.');
+    router.push('/products');
+    return;
+  }
+
+  isCheckingLogin.value = false;
 });
 
 const handleFileUpload = (event) => {
@@ -157,18 +192,52 @@ const handleFileUpload = (event) => {
   fileError.value = null;
 
   const allowed = ['image/jpeg', 'image/png', 'image/gif'];
-  if (file && allowed.includes(file.type) && file.size <= 5 * 1024 * 1024) {
-    proofOfTransferFile.value = file;
+  const maxFileSize = 5 * 1024 * 1024;
+
+  if (file) {
+    if (!allowed.includes(file.type)) {
+      fileError.value = 'Hanya file gambar (JPG, PNG, GIF) yang diizinkan.';
+      proofOfTransferFile.value = null;
+    } else if (file.size > maxFileSize) {
+      fileError.value = `Ukuran file maksimal 5MB. File Anda ${Math.round(file.size / 1024 / 1024)}MB.`;
+      proofOfTransferFile.value = null;
+    } else {
+      proofOfTransferFile.value = file;
+    }
   } else {
-    fileError.value = 'File tidak valid atau lebih dari 5MB';
     proofOfTransferFile.value = null;
   }
 };
 
 const submitOrder = async () => {
   if (!userInfo.value || !userInfo.value.token) {
-    error.value = 'Anda belum login. Silakan login kembali.';
+    error.value = 'Anda belum login atau sesi Anda telah berakhir. Silakan login kembali.';
     router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } });
+    return;
+  }
+
+  if (!shippingAddress.value.address || !shippingAddress.value.city || !shippingAddress.value.postalCode || !shippingAddress.value.country) {
+    error.value = 'Mohon lengkapi semua informasi pengiriman.';
+    return;
+  }
+
+  if (!paymentMethod.value) {
+    error.value = 'Mohon pilih metode pembayaran.';
+    return;
+  }
+
+  if (requiresProof.value && !proofOfTransferFile.value) {
+    error.value = 'Mohon upload bukti pembayaran.';
+    return;
+  }
+
+  if (!agreedToTerms.value) {
+    error.value = 'Anda harus menyetujui syarat & ketentuan.';
+    return;
+  }
+
+  if (cartStore.items.length === 0) {
+    error.value = 'Keranjang belanja Anda kosong.';
     return;
   }
 
@@ -177,23 +246,28 @@ const submitOrder = async () => {
 
   try {
     const formData = new FormData();
+
     formData.append('shippingAddress', JSON.stringify(shippingAddress.value));
     formData.append('paymentMethod', paymentMethod.value);
     formData.append('itemsPrice', itemsPrice.value);
     formData.append('shippingPrice', shippingPrice.value);
     formData.append('taxPrice', taxPrice.value);
     formData.append('totalPrice', totalPrice.value);
+
     formData.append('orderItems', JSON.stringify(cartStore.items.map(item => ({
       product: item.product._id,
       name: item.product.name,
       quantity: item.quantity,
       price: item.product.price,
-      image: item.product.imageUrl || '',
+      image: item.product.image || '',
     }))));
-    formData.append('proofOfTransfer', proofOfTransferFile.value);
+
+    if (requiresProof.value && proofOfTransferFile.value) {
+      formData.append('proofOfTransferImage', proofOfTransferFile.value);
+    }
 
     const { data } = await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/orders`,
+      `http://${BE_PRE_URL}/orders`,
       formData,
       {
         headers: {
@@ -206,6 +280,7 @@ const submitOrder = async () => {
     cartStore.clearCart();
     alert('Pesanan berhasil dibuat!');
     router.push({ name: 'orderConfirmation', params: { orderId: data._id } });
+
   } catch (err) {
     console.error('Gagal submit pesanan:', err);
     error.value = err.response?.data?.message || err.message;
@@ -214,14 +289,8 @@ const submitOrder = async () => {
   }
 };
 </script>
+  
 
 <style scoped>
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type="number"] {
-  -moz-appearance: textfield;
-}
+/* Your existing styles */
 </style>

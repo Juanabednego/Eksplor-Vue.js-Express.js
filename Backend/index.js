@@ -47,8 +47,9 @@ app.use(cors({
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/lapangan', lapanganRouter)
 app.use('/api/v1/pipa', pipaRouter)
-app.use('/api/orders', orderRoutes); 
+app.use('/api/v1/orders', orderRoutes); 
 
+  
 
 
 

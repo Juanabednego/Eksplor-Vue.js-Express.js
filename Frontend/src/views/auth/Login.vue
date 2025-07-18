@@ -55,6 +55,9 @@
           </button>
         </div>
       </form>
+
+
+
     </div>
   </div>
 </template>
@@ -63,13 +66,15 @@
 import { ref } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
-import BE_PRE_URL from '../../url/index.js' // Pastikan path ini benar
+import BE_PRE_URL from '../../url/index.js'
 
 const username = ref('')
 const password = ref('')
 const isLoading = ref(false)
 const errorMessage = ref('')
 const router = useRouter()
+
+const test = ref('')
 
 const handleLogin = async () => {
   isLoading.value = true
@@ -81,25 +86,30 @@ const handleLogin = async () => {
       password: password.value,
     })
 
-    const userData = response.data
+    const { data, jwt, role } = response.data
 
-    // Simpan informasi login ke localStorage
-    localStorage.setItem('userInfo', JSON.stringify(userData))
     localStorage.setItem('isLoggedIn', 'true')
-    localStorage.setItem('role', userData.role)
+    localStorage.setItem('jwt', jwt)
+    localStorage.setItem('role', role) // Simpan role
+    localStorage.setItem('userData', JSON.stringify(data))
 
-    // Bersihkan flag logout jika ada
-    if (localStorage.getItem('logout')) {
+    if(localStorage.getItem('logout')){
       localStorage.removeItem('logout')
     }
 
-    alert('Login berhasil!')
+   
 
-    // ✅ Langsung redirect ke /home
-    router.push({ name: 'Home' })
 
+    // Navigasi berdasarkan role
+    if (role === 'admin') {
+      router.push('/dashboard')
+      window.location.reload() // Refresh paksa setelah login admin
+    } else if (role === 'customer') {
+      router.push('/home') // Navigasi ke halaman customer
+      window.location.reload() // Refresh paksa setelah login customer
+    }
   } catch (error) {
-    if (error.response?.data?.message) {
+    if (error.response && error.response.data.message) {
       errorMessage.value = error.response.data.message
     } else {
       errorMessage.value = 'Terjadi kesalahan saat login.'
@@ -108,6 +118,9 @@ const handleLogin = async () => {
     isLoading.value = false
   }
 }
+
+
+
 
 const goToRegister = () => {
   router.push('/register')

@@ -36,16 +36,6 @@ const userSchema = new Schema({
     }
 });
 
-// ❌ Hapus middleware hashing
-// userSchema.pre("save", async function() {
-//     const salt = await bycrypt.genSalt(10)
-//     this.password = await bycrypt.hash(this.password, salt)
-// })
-
-// ❌ Hapus comparePassword jika tidak pakai bcrypt
-// userSchema.methods.comparePassword = async function(reqBody){
-//     return await bycrypt.compare(reqBody, this.password)
-// }
 
 const User = mongoose.model("User", userSchema);
 
