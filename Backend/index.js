@@ -1,10 +1,11 @@
 import express from "express"
 import dotenv from "dotenv"
+dotenv.config();
 // Router
 import authRouter from './routes/authRouter.js'
 import lapanganRouter from './routes/lapanganRouter.js'
 import pipaRouter from './routes/pipaRouter.js'
-import orderRoutes from './routes/orderRoutes.js'
+import orderRouter from './routes/orderRouter.js'
 
 import cors from 'cors'
 
@@ -47,7 +48,7 @@ app.use(cors({
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/lapangan', lapanganRouter)
 app.use('/api/v1/pipa', pipaRouter)
-app.use('/api/v1/orders', orderRoutes); 
+app.use('/api/v1/orders', orderRouter); 
 
   
 

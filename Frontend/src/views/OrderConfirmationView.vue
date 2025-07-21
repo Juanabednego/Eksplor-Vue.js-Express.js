@@ -23,7 +23,7 @@
             <p><strong>Tanggal Pesanan:</strong> {{ formatDate(order.createdAt) }}</p>
             <p><strong>Status Pembayaran:</strong>
               <span :class="order.isPaid ? 'text-green-600 font-semibold' : 'text-orange-600 font-semibold'">
-                {{ order.isPaid ? `Sudah Dibayar ${order.paidAt ? 'pada ' + formatDate(order.paidAt, true) : ''}` : 'Belum Dibayar' }}
+                {{ order.isPaid ? `Sudah Dibayar ${order.paidAt ? 'pada ' + formatDate(order.paidAt, true) : ''}` : 'Menunggu Verifikasi' }}
               </span>
             </p>
             <p><strong>Status Pesanan:</strong>
@@ -48,20 +48,16 @@
           <div class="mb-4">
             <h3 class="text-xl font-semibold border-b pb-2 mb-2">Metode Pembayaran</h3>
             <p>{{ order.paymentMethod }}</p>
-            <div v-if="order.paymentMethod === 'Transfer Bank'">
-              <p class="mt-2 text-gray-700">Silakan transfer ke rekening:</p>
-              <p class="font-bold text-lg">Bank Mandiri - 1234567890123 (a.n. PT. Pipa Distribusi Utama)</p>
-              <p class="text-sm text-gray-500">Mohon lakukan pembayaran dalam 24 jam untuk menghindari pembatalan otomatis.</p>
-              <div v-if="order.proofOfTransfer" class="mt-4">
-                <p class="font-semibold text-gray-800 mb-2">Bukti Transfer:</p>
+            <div v-if="order.proofOfTransfer" class="mt-4">
+                <p class="font-semibold text-gray-800 mb-2">Bukti Transfer / Pembayaran:</p>
                 <a :href="getImageUrl(order.proofOfTransfer)" target="_blank" class="text-blue-600 hover:underline">
-                  <img :src="getImageUrl(order.proofOfTransfer)" alt="Bukti Transfer" class="max-w-xs h-auto rounded-lg shadow-md border border-gray-200 object-cover">
-                  <p class="text-sm mt-1">Klik untuk melihat gambar penuh</p>
+                    <img :src="getImageUrl(order.proofOfTransfer)" alt="Bukti Pembayaran" class="max-w-xs h-auto rounded-lg shadow-md border border-gray-200 object-cover">
+                    <p class="text-sm mt-1">Klik untuk melihat gambar penuh</p>
                 </a>
-              </div>
-              <div v-else class="mt-4 text-gray-600 italic">
-                  Belum ada bukti transfer terunggah.
-              </div>
+                <p class="text-sm mt-2 text-gray-600 italic">Pembayaran Anda sedang dalam proses verifikasi.</p>
+            </div>
+            <div v-else class="mt-4 text-gray-600 italic">
+                Tidak ada bukti pembayaran terunggah untuk metode ini.
             </div>
           </div>
 
@@ -112,50 +108,94 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 
+// Assuming BE_PRE_URL from `../url/index.js` which defines your base URL
+import BE_PRE_URL from '../url/index.js'; 
+
 const route = useRoute();
 const router = useRouter();
-const orderId = route.params.orderId; // Ambil orderId dari parameter URL
+const orderId = route.params.orderId; 
 
 const order = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
+function getUserInfoFromLocalStorage() {
+  const user = localStorage.getItem('userData');
+  const token = localStorage.getItem('jwt');
+  console.log('[OrderConfirmation] Attempting to get user info from localStorage...');
+  console.log('  userData found:', !!user);
+  console.log('  jwt token found:', !!token);
+
+  if (!user || !token) {
+    console.warn('[OrderConfirmation] User data or JWT token is missing in localStorage.');
+    return null;
+  }
+
+  try {
+    const parsedUser = JSON.parse(user);
+    parsedUser.token = token; 
+    console.log('[OrderConfirmation] Successfully retrieved user info with token:', parsedUser);
+    return parsedUser;
+  } catch (e) {
+    console.error('[OrderConfirmation] Error parsing user data from localStorage:', e);
+    return null;
+  }
+}
+
 const fetchOrder = async () => {
+  console.log(`[OrderConfirmation] Attempting to fetch order with ID: ${orderId}`);
   loading.value = true;
   error.value = null;
+
   try {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo')); // Ambil token user dari localStorage
+    const userInfo = getUserInfoFromLocalStorage(); 
+    
     if (!userInfo || !userInfo.token) {
-        throw new Error('Anda harus login untuk melihat detail pesanan ini.');
+      console.error('[OrderConfirmation] No valid user info or token found to fetch order.');
+      throw new Error('Anda harus login untuk melihat detail pesanan ini. Token autentikasi tidak ditemukan.');
     }
 
     const config = {
       headers: {
-        Authorization: `Bearer ${userInfo.token}`, // Kirim token untuk autentikasi
+        Authorization: `Bearer ${userInfo.token}`,
       },
     };
-    const { data } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/${orderId}`, config);
+    console.log(`[OrderConfirmation] Sending GET request to: http://${BE_PRE_URL}/orders/${orderId}`);
+    console.log('[OrderConfirmation] Authorization Header:', config.headers.Authorization);
+
+    const { data } = await axios.get(`http://${BE_PRE_URL}/orders/${orderId}`, config);
     order.value = data;
+    console.log('[OrderConfirmation] Order data fetched successfully:', data);
+
   } catch (err) {
-    error.value = err.response && err.response.data.message
-      ? err.response.data.message
-      : err.message;
-    console.error('Error fetching order:', err);
-    // Jika error autentikasi (misal 401), arahkan ke login
-    if (err.response && err.response.status === 401) {
+    console.error('[OrderConfirmation] Error fetching order:', err);
+    
+    if (err.response) {
+      console.error('[OrderConfirmation] Server Response Error:', err.response.data);
+      console.error('[OrderConfirmation] Status:', err.response.status);
+      error.value = err.response.data.message || 'Terjadi kesalahan saat mengambil detail pesanan dari server.';
+
+      if (err.response.status === 401) {
         alert('Sesi Anda telah berakhir. Harap login kembali.');
-        localStorage.removeItem('userInfo');
-        // Gunakan name router untuk redirect, lebih robust
+        localStorage.removeItem('userData'); 
+        localStorage.removeItem('jwt'); 
         router.push({ name: 'Login', query: { redirect: route.fullPath } });
-    } else if (err.response && err.response.status === 404) {
+      } else if (err.response.status === 404) {
         error.value = 'Pesanan tidak ditemukan atau Anda tidak memiliki izin untuk melihatnya.';
+      }
+    } else if (err.request) {
+      console.error('[OrderConfirmation] Network Error (No response from server):', err.request);
+      error.value = 'Tidak dapat terhubung ke server. Periksa koneksi Anda.';
+    } else {
+      console.error('[OrderConfirmation] Axios Error (Request setup issue):', err.message);
+      error.value = err.message || 'Terjadi kesalahan tidak terduga.';
     }
   } finally {
     loading.value = false;
+    console.log('[OrderConfirmation] Order fetch process finished.');
   }
 };
 
-// Helper untuk memformat tanggal
 const formatDate = (dateString, includeTime = false) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
@@ -163,26 +203,31 @@ const formatDate = (dateString, includeTime = false) => {
   if (includeTime) {
       options.hour = '2-digit';
       options.minute = '2-digit';
+      options.second = '2-digit'; 
   }
   return date.toLocaleDateString('id-ID', options);
 };
 
-// Helper untuk membuat URL gambar yang benar
 const getImageUrl = (imagePath) => {
-  // Asumsi backend melayani folder /uploads/ dari root (misal: http://localhost:5000/uploads/...)
-  // import.meta.env.VITE_API_BASE_URL adalah http://localhost:5000/api
-  // Kita perlu menghilangkan /api untuk mendapatkan base URL backend
-  const baseUrl = import.meta.env.VITE_API_BASE_URL.replace('/api', '');
-  return `${baseUrl}${imagePath}`;
+  // Logic to construct the correct base URL for static files
+  // Assuming BE_PRE_URL from '../url/index.js' is 'localhost:9001/api/v1'
+  // We want 'http://localhost:9001'
+  const baseUrl = `http://${BE_PRE_URL}`.replace('/api/v1', '');
+  console.log('[OrderConfirmation] Generating image URL for:', imagePath, 'Base URL used:', baseUrl);
+  // Ensure imagePath starts with '/', if not, add it
+  const finalImagePath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+  return `${baseUrl}${finalImagePath}`;
 };
 
 
 onMounted(() => {
+  console.log('[OrderConfirmation] Component mounted. Order ID from route:', orderId);
   if (orderId) {
     fetchOrder();
   } else {
     error.value = 'ID Pesanan tidak ditemukan di URL.';
     loading.value = false;
+    console.error('[OrderConfirmation] No orderId found in URL parameters.');
   }
 });
 </script>

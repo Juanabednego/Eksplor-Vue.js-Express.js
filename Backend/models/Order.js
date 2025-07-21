@@ -1,4 +1,5 @@
 // backend/models/Order.js
+import { AggregationCursor } from 'mongodb';
 import mongoose from 'mongoose';
 
 const orderItemSchema = mongoose.Schema({
@@ -97,3 +98,4 @@ const orderSchema = mongoose.Schema(
 const Order = mongoose.model('Order', orderSchema);
 
 export default Order;
+

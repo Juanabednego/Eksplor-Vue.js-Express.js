@@ -18,7 +18,7 @@ export const addOrderItems = asyncHandler(async (req, res) => {
   console.log('--- addOrderItems: Request Received ---');
   console.log('Req Body (Raw):', req.body);
   console.log('Req File (from Multer):', req.file);
-  console.log('User from Auth Middleware (req.user):', req.user ? req.user.username : 'Not Available (User not authenticated)');
+  console.log('User from Auth Middleware (req.user):', req.user ? req.user.nama : 'Not Available (User not authenticated)');
 
   const {
     orderItems: orderItemsString,
@@ -111,7 +111,7 @@ export const addOrderItems = asyncHandler(async (req, res) => {
                 if (err) console.error('Error deleting local file after failed Cloudinary upload:', err);
             });
         }
-        throw new Error(`Gagal mengunggah bukti transfer: ${uploadError.message}`);
+        throw new Error(`mengunggah bukti transfer: ${uploadError.message}`);
       } finally {
         if (proofOfTransferFile && fs.existsSync(proofOfTransferFile.path)) {
             fs.unlink(proofOfTransferFile.path, (err) => {
@@ -175,7 +175,7 @@ export const addOrderItems = asyncHandler(async (req, res) => {
 // @access  Private
 export const getOrderById = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id)
-    .populate('user', 'username email') // ***PENTING: Mengacu properti 'username' di userModel.js***
+    .populate('user', 'nama email') // ***PENTING: Mengacu properti 'username' di userModel.js***
     .populate('orderItems.product', 'pipeName imageUrl'); // Mengacu properti 'pipeName' di pipaModel.js
 
   if (order) {
@@ -256,7 +256,7 @@ export const updateOrderToDelivered = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 export const getAllOrders = asyncHandler(async (req, res) => {
     const orders = await Order.find({})
-        .populate('user', 'id username email') // ***PENTING: Mengacu properti 'username' di userModel.js***
+        .populate('user', 'id nama email') // ***PENTING: Mengacu properti 'nama' di userModel.js***
         .sort({ createdAt: -1 });
     res.json(orders);
 });

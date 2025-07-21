@@ -155,94 +155,135 @@ const goBackToCart = () => router.push('/cart');
 function getUserFromLocalStorage() {
   const user = localStorage.getItem('userData');
   const token = localStorage.getItem('jwt');
-  if (!user || !token) return null;
+  console.log('[CheckoutView] Getting user from local storage:');
+  console.log('  userData:', user ? JSON.parse(user) : 'Not found');
+  console.log('  jwt token:', token ? 'Found (length: ' + token.length + ')' : 'Not found');
+
+  if (!user || !token) {
+    console.log('[CheckoutView] User data or token not found in local storage.');
+    return null;
+  }
 
   try {
     const parsed = JSON.parse(user);
     parsed.token = token;
+    console.log('[CheckoutView] Parsed user info:', parsed);
     return parsed;
-  } catch {
+  } catch (e) {
+    console.error('[CheckoutView] Error parsing user data from local storage:', e);
     return null;
   }
 }
 
 onMounted(() => {
+  console.log('[CheckoutView] onMounted: Starting login check and cart load...');
   const storedUser = getUserFromLocalStorage();
+
   if (!storedUser || !storedUser.token) {
+    console.log('[CheckoutView] User not logged in or token missing. Redirecting to login.');
     alert('Anda harus login untuk melakukan pembelian.');
     router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } });
     return;
   }
 
   userInfo.value = storedUser;
+  console.log('[CheckoutView] User is logged in. User ID:', userInfo.value._id);
+
 
   cartStore.loadCartFromLocalStorage();
+  console.log('[CheckoutView] Cart loaded. Items in cart:', cartStore.items.length);
+
 
   if (cartStore.items.length === 0) {
+    console.warn('[CheckoutView] Cart is empty. Redirecting to products page.');
     alert('Keranjang belanja Anda kosong, silakan tambahkan produk.');
     router.push('/products');
     return;
   }
 
   isCheckingLogin.value = false;
+  console.log('[CheckoutView] Checkout page ready.');
 });
 
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   fileError.value = null;
+  console.log('[CheckoutView] File selected for upload:', file ? file.name : 'No file');
 
   const allowed = ['image/jpeg', 'image/png', 'image/gif'];
-  const maxFileSize = 5 * 1024 * 1024;
+  const maxFileSize = 5 * 1024 * 1024; // 5MB
 
   if (file) {
     if (!allowed.includes(file.type)) {
       fileError.value = 'Hanya file gambar (JPG, PNG, GIF) yang diizinkan.';
       proofOfTransferFile.value = null;
+      console.warn('[CheckoutView] File type not allowed:', file.type);
     } else if (file.size > maxFileSize) {
       fileError.value = `Ukuran file maksimal 5MB. File Anda ${Math.round(file.size / 1024 / 1024)}MB.`;
       proofOfTransferFile.value = null;
+      console.warn('[CheckoutView] File size too large:', file.size);
     } else {
       proofOfTransferFile.value = file;
+      console.log('[CheckoutView] Valid file selected:', file.name, 'Size:', file.size, 'bytes');
     }
   } else {
     proofOfTransferFile.value = null;
+    console.log('[CheckoutView] File input cleared.');
   }
 };
 
 const submitOrder = async () => {
+  console.log('[CheckoutView] Submitting order...');
+  console.log('  Current userInfo:', userInfo.value);
+  console.log('  Token for Authorization:', userInfo.value?.token ? 'Exists' : 'MISSING/NULL');
+  console.log('  Shipping Address:', shippingAddress.value);
+  console.log('  Payment Method:', paymentMethod.value);
+  console.log('  Requires Proof:', requiresProof.value);
+  console.log('  Proof File Selected:', proofOfTransferFile.value ? proofOfTransferFile.value.name : 'NONE');
+  console.log('  Agreed to Terms:', agreedToTerms.value);
+  console.log('  Cart Items Count:', cartStore.items.length);
+
+
   if (!userInfo.value || !userInfo.value.token) {
     error.value = 'Anda belum login atau sesi Anda telah berakhir. Silakan login kembali.';
+    console.error('[CheckoutView] Submit aborted: User not logged in or token missing.');
     router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } });
     return;
   }
 
   if (!shippingAddress.value.address || !shippingAddress.value.city || !shippingAddress.value.postalCode || !shippingAddress.value.country) {
     error.value = 'Mohon lengkapi semua informasi pengiriman.';
+    console.error('[CheckoutView] Submit aborted: Missing shipping address info.');
     return;
   }
 
   if (!paymentMethod.value) {
     error.value = 'Mohon pilih metode pembayaran.';
+    console.error('[CheckoutView] Submit aborted: Payment method not selected.');
     return;
   }
 
   if (requiresProof.value && !proofOfTransferFile.value) {
     error.value = 'Mohon upload bukti pembayaran.';
+    console.error('[CheckoutView] Submit aborted: Proof of payment required but not uploaded.');
     return;
   }
 
   if (!agreedToTerms.value) {
     error.value = 'Anda harus menyetujui syarat & ketentuan.';
+    console.error('[CheckoutView] Submit aborted: Terms not agreed.');
     return;
   }
 
   if (cartStore.items.length === 0) {
     error.value = 'Keranjang belanja Anda kosong.';
+    console.error('[CheckoutView] Submit aborted: Cart is empty.');
     return;
   }
 
   loading.value = true;
   error.value = null;
+  console.log('[CheckoutView] All frontend validations passed. Preparing for API call.');
 
   try {
     const formData = new FormData();
@@ -263,9 +304,22 @@ const submitOrder = async () => {
     }))));
 
     if (requiresProof.value && proofOfTransferFile.value) {
-      formData.append('proofOfTransferImage', proofOfTransferFile.value);
+      formData.append('proofOfTransfer', proofOfTransferFile.value);
+      console.log('[CheckoutView] Proof of transfer file appended to FormData.');
+    }
+    
+    // Log FormData contents (for debugging, can be verbose)
+    console.log('[CheckoutView] FormData contents:');
+    for (let pair of formData.entries()) {
+        if (pair[0] === 'proofOfTransfer' && typeof pair[1] === 'object') {
+            console.log(`  ${pair[0]}: File object (name: ${pair[1].name}, type: ${pair[1].type}, size: ${pair[1].size})`);
+        } else {
+            console.log(`  ${pair[0]}: ${pair[1]}`);
+        }
     }
 
+
+    console.log(`[CheckoutView] Sending POST request to: http://${BE_PRE_URL}/orders`);
     const { data } = await axios.post(
       `http://${BE_PRE_URL}/orders`,
       formData,
@@ -277,19 +331,34 @@ const submitOrder = async () => {
       }
     );
 
+    console.log('[CheckoutView] Order successfully created:', data);
     cartStore.clearCart();
     alert('Pesanan berhasil dibuat!');
     router.push({ name: 'orderConfirmation', params: { orderId: data._id } });
 
   } catch (err) {
-    console.error('Gagal submit pesanan:', err);
-    error.value = err.response?.data?.message || err.message;
+    console.error('[CheckoutView] Gagal submit pesanan:', err);
+    if (err.response) {
+      // Server responded with a status other than 2xx
+      console.error('[CheckoutView] Server Response Error:', err.response.data);
+      console.error('[CheckoutView] Status:', err.response.status);
+      console.error('[CheckoutView] Headers:', err.response.headers);
+      error.value = err.response.data.message || 'Terjadi kesalahan dari server.';
+    } else if (err.request) {
+      // Request was made but no response was received
+      console.error('[CheckoutView] Network Error (No response from server):', err.request);
+      error.value = 'Tidak dapat terhubung ke server. Periksa koneksi Anda.';
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error('[CheckoutView] Axios Error (Request setup issue):', err.message);
+      error.value = err.message || 'Terjadi kesalahan tidak terduga.';
+    }
   } finally {
     loading.value = false;
+    console.log('[CheckoutView] Order submission process finished.');
   }
 };
 </script>
-  
 
 <style scoped>
 /* Your existing styles */
